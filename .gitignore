@@ -1,0 +1,24 @@
+# Byte-compiled / optimized / DLL archive files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller / Build
+build/
+dist/
+*.spec
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+venv.bak/
+env.bak/
+
+# Project Specific
+config.json
+lhm_update/
+nuget_temp/
+*.bak
