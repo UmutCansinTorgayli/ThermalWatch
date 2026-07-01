@@ -28,7 +28,10 @@ def run_widget_thread():
         if global_icon:
             update_menu(global_icon)
             
-    widget_instance = TemperatureWidget(on_close_callback=on_close)
+    widget_instance = TemperatureWidget(
+        get_temp_callback=lambda: (current_cpu_temp, current_gpu_temp),
+        on_close_callback=on_close
+    )
     widget_instance.start()
 
 

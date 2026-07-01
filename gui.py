@@ -170,7 +170,8 @@ def open_settings_window():
     root.mainloop()
 
 class TemperatureWidget:
-    def __init__(self, on_close_callback=None):
+    def __init__(self, get_temp_callback, on_close_callback=None):
+        self.get_temp_callback = get_temp_callback
         self.on_close_callback = on_close_callback
         self.root = ctk.CTk()
         self.root.title("ThermalWatch Widget")
@@ -252,9 +253,7 @@ class TemperatureWidget:
 
     def update_loop(self):
         try:
-            import main
-            cpu = main.current_cpu_temp
-            gpu = main.current_gpu_temp
+            cpu, gpu = self.get_temp_callback()
             
             cpu_text = f"{cpu:.1f}°C" if cpu > 0.0 else "N/A"
             gpu_text = f"{gpu:.1f}°C" if gpu > 0.0 else "N/A"
