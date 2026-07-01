@@ -192,7 +192,7 @@ class TemperatureWidget:
         settings = load_settings()
         x = settings.get("widget-x", 100)
         y = settings.get("widget-y", 100)
-        self.root.geometry(f"200x45+{x}+{y}")
+        self.root.geometry(f"240x60+{x}+{y}")
         
         # Styled container frame
         self.frame = ctk.CTkFrame(
@@ -204,26 +204,42 @@ class TemperatureWidget:
         )
         self.frame.pack(fill="both", expand=True)
         
-        self.label = ctk.CTkLabel(
-            self.frame, 
-            text="CPU: --°C  |  GPU: --°C", 
-            font=("Helvetica", 12, "bold"), 
+        # CPU Label
+        self.cpu_title_label = ctk.CTkLabel(
+            self.frame,
+            text="CPU: --°C",
+            font=("Helvetica", 12, "bold"),
             text_color="#cdd6f4"
         )
-        self.label.pack(fill="both", expand=True, padx=10, pady=5)
+        self.cpu_title_label.pack(side="left", fill="both", expand=True, padx=15, pady=5)
         
-        # Dragging listeners
+        # GPU Label
+        self.gpu_title_label = ctk.CTkLabel(
+            self.frame,
+            text="GPU: --°C",
+            font=("Helvetica", 12, "bold"),
+            text_color="#cdd6f4"
+        )
+        self.gpu_title_label.pack(side="right", fill="both", expand=True, padx=15, pady=5)
+        
+        # Listeners
         self.frame.bind("<Button-1>", self.start_drag)
         self.frame.bind("<B1-Motion>", self.do_drag)
         self.frame.bind("<ButtonRelease-1>", self.stop_drag)
-        self.label.bind("<Button-1>", self.start_drag)
-        self.label.bind("<B1-Motion>", self.do_drag)
-        self.label.bind("<ButtonRelease-1>", self.stop_drag)
         
-        # Double click to close
+        self.cpu_title_label.bind("<Button-1>", self.start_drag)
+        self.cpu_title_label.bind("<B1-Motion>", self.do_drag)
+        self.cpu_title_label.bind("<ButtonRelease-1>", self.stop_drag)
+        
+        self.gpu_title_label.bind("<Button-1>", self.start_drag)
+        self.gpu_title_label.bind("<B1-Motion>", self.do_drag)
+        self.gpu_title_label.bind("<ButtonRelease-1>", self.stop_drag)
+        
+        # Double Click Close Listener
         self.frame.bind("<Double-Button-1>", self.close_widget)
-        self.label.bind("<Double-Button-1>", self.close_widget)
-        
+        self.cpu_title_label.bind("<Double-Button-1>", self.close_widget)
+        self.gpu_title_label.bind("<Double-Button-1>", self.close_widget)
+
         self.drag_data = {"x": 0, "y": 0}
         self.update_loop()
         
@@ -273,7 +289,8 @@ class TemperatureWidget:
             if cpu >= cpu_limit or gpu >= gpu_limit:
                 color = "#f38ba8" # Red
                 
-            self.label.configure(text=f"CPU: {cpu_text}  |  GPU: {gpu_text}", text_color=color)
+            self.cpu_title_label.configure(text=f"CPU: {cpu_text}", text_color=color)
+            self.gpu_title_label.configure(text=f"GPU: {gpu_text}", text_color=color)
         except Exception as e:
             print(f"Widget update error: {e}")
             
