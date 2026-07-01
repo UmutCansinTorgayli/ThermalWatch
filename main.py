@@ -5,8 +5,8 @@ import time
 from PIL import Image, ImageDraw
 import pystray
 
-from config import load_settings
-from gui import open_settings_window
+from config import load_settings, save_settings
+from gui import open_settings_window, TemperatureWidget
 from monitor import get_temperatures
 from notifier import send_mobile_notification, send_windows_notification
 current_cpu_temp = 0.0
@@ -14,6 +14,42 @@ current_gpu_temp = 0.0
 last_cpu_alert_time = 0.0
 last_gpu_alert_time = 0.0
 ALERT_COOLDOWN = 300
+
+global_icon = None
+widget_instance = None
+
+
+def run_widget_thread():
+    global widget_instance
+    
+    def on_close():
+        global widget_instance
+        widget_instance = None
+        if global_icon:
+            update_menu(global_icon)
+            
+    widget_instance = TemperatureWidget(on_close_callback=on_close)
+    widget_instance.start()
+
+
+def toggle_widget(icon, item):
+    global widget_instance
+    settings = load_settings()
+    
+    if widget_instance is not None:
+        try:
+            widget_instance.root.destroy()
+        except Exception:
+            pass
+        widget_instance = None
+        settings["widget-visible"] = False
+        save_settings(settings)
+    else:
+        settings["widget-visible"] = True
+        save_settings(settings)
+        threading.Thread(target=run_widget_thread, daemon=True).start()
+        
+    update_menu(icon)
 
 
 def create_circle_icon(color):
@@ -31,7 +67,9 @@ def update_menu(icon):
         pystray.MenuItem(cpu_str, lambda: None, enabled=False),
         pystray.MenuItem(gpu_str, lambda: None, enabled=False),
         pystray.Menu.SEPARATOR,
+        pystray.MenuItem("Desktop Widget", toggle_widget, checked=lambda item: widget_instance is not None),
         pystray.MenuItem("Settings", lambda: threading.Thread(target=open_settings_window, daemon=True).start()),
+        pystray.Menu.SEPARATOR,
         pystray.MenuItem("Exit", lambda: exit_app(icon)),
     ]
     icon.menu = pystray.Menu(*menu_items)
@@ -105,6 +143,7 @@ def exit_app(icon):
 
 
 def main():
+    global global_icon
     initial_icon = create_circle_icon("#2ecc71")
 
     icon = pystray.Icon(
@@ -113,12 +152,19 @@ def main():
         "ThermalWatch",
     )
 
+    global_icon = icon
     update_menu(icon)
+
+    # Check if widget should be shown on startup
+    settings = load_settings()
+    if settings.get("widget-visible", False):
+        threading.Thread(target=run_widget_thread, daemon=True).start()
 
     monitor_thread = threading.Thread(
         target=monitor_loop, args=(icon,), daemon=True
     )
     monitor_thread.start()
     icon.run()
+
 if __name__ == "__main__":
     main()

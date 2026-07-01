@@ -169,5 +169,114 @@ def open_settings_window():
 
     root.mainloop()
 
+class TemperatureWidget:
+    def __init__(self, on_close_callback=None):
+        self.on_close_callback = on_close_callback
+        self.root = ctk.CTk()
+        self.root.title("ThermalWatch Widget")
+        
+        # Frameless and always on top
+        self.root.overrideredirect(True)
+        self.root.attributes("-topmost", True)
+        self.root.attributes("-alpha", 0.85)
+        
+        # Transparent background for rounded corners on Windows
+        self.root.config(bg="black")
+        try:
+            self.root.wm_attributes("-transparentcolor", "black")
+        except Exception:
+            pass
+            
+        settings = load_settings()
+        x = settings.get("widget-x", 100)
+        y = settings.get("widget-y", 100)
+        self.root.geometry(f"200x45+{x}+{y}")
+        
+        # Styled container frame
+        self.frame = ctk.CTkFrame(
+            self.root, 
+            corner_radius=12, 
+            fg_color="#181825", 
+            border_width=1, 
+            border_color="#313244"
+        )
+        self.frame.pack(fill="both", expand=True)
+        
+        self.label = ctk.CTkLabel(
+            self.frame, 
+            text="CPU: --°C  |  GPU: --°C", 
+            font=("Helvetica", 12, "bold"), 
+            text_color="#cdd6f4"
+        )
+        self.label.pack(fill="both", expand=True, padx=10, pady=5)
+        
+        # Dragging listeners
+        self.frame.bind("<Button-1>", self.start_drag)
+        self.frame.bind("<B1-Motion>", self.do_drag)
+        self.frame.bind("<ButtonRelease-1>", self.stop_drag)
+        self.label.bind("<Button-1>", self.start_drag)
+        self.label.bind("<B1-Motion>", self.do_drag)
+        self.label.bind("<ButtonRelease-1>", self.stop_drag)
+        
+        # Double click to close
+        self.frame.bind("<Double-Button-1>", self.close_widget)
+        self.label.bind("<Double-Button-1>", self.close_widget)
+        
+        self.drag_data = {"x": 0, "y": 0}
+        self.update_loop()
+        
+    def start_drag(self, event):
+        self.drag_data["x"] = event.x
+        self.drag_data["y"] = event.y
+
+    def do_drag(self, event):
+        deltax = event.x - self.drag_data["x"]
+        deltay = event.y - self.drag_data["y"]
+        new_x = self.root.winfo_x() + deltax
+        new_y = self.root.winfo_y() + deltay
+        self.root.geometry(f"+{new_x}+{new_y}")
+
+    def stop_drag(self, event):
+        settings = load_settings()
+        settings["widget-x"] = self.root.winfo_x()
+        settings["widget-y"] = self.root.winfo_y()
+        save_settings(settings)
+
+    def close_widget(self, event=None):
+        settings = load_settings()
+        settings["widget-visible"] = False
+        save_settings(settings)
+        if self.on_close_callback:
+            self.on_close_callback()
+        self.root.destroy()
+
+    def update_loop(self):
+        try:
+            import main
+            cpu = main.current_cpu_temp
+            gpu = main.current_gpu_temp
+            
+            cpu_text = f"{cpu:.1f}°C" if cpu > 0.0 else "N/A"
+            gpu_text = f"{gpu:.1f}°C" if gpu > 0.0 else "N/A"
+            
+            settings = load_settings()
+            cpu_limit = settings.get("cpu-max-temperature", 85)
+            gpu_limit = settings.get("gpu-max-temperature", 80)
+            
+            color = "#a6e3a1" # Green
+            if cpu >= (cpu_limit - 5) or gpu >= (gpu_limit - 5):
+                color = "#f9e2af" # Yellow
+            if cpu >= cpu_limit or gpu >= gpu_limit:
+                color = "#f38ba8" # Red
+                
+            self.label.configure(text=f"CPU: {cpu_text}  |  GPU: {gpu_text}", text_color=color)
+        except Exception as e:
+            print(f"Widget update error: {e}")
+            
+        self.root.after(1000, self.update_loop)
+
+    def start(self):
+        self.root.mainloop()
+
 if __name__ == "__main__":
     open_settings_window()

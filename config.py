@@ -9,6 +9,9 @@ DEFAULT_SETTINGS = {
     "cpu-max-usage" : 95,
     "gpu-max-usage" : 100,
     "ntfy-topic" : None,
+    "widget-visible": False,
+    "widget-x": 100,
+    "widget-y": 100,
 }
 
 def load_settings():
