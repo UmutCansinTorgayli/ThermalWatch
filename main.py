@@ -26,7 +26,7 @@ def run_widget_thread():
         global widget_instance
         widget_instance = None
         if global_icon:
-            update_menu(global_icon)
+            threading.Thread(target=lambda: update_menu(global_icon), daemon=True).start()
             
     widget_instance = TemperatureWidget(
         get_temp_callback=lambda: (current_cpu_temp, current_gpu_temp),
@@ -40,10 +40,7 @@ def toggle_widget(icon, item):
     settings = load_settings()
     
     if widget_instance is not None:
-        try:
-            widget_instance.root.destroy()
-        except Exception:
-            pass
+        widget_instance.should_close = True
         widget_instance = None
         settings["widget-visible"] = False
         save_settings(settings)

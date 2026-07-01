@@ -173,6 +173,7 @@ class TemperatureWidget:
     def __init__(self, get_temp_callback, on_close_callback=None):
         self.get_temp_callback = get_temp_callback
         self.on_close_callback = on_close_callback
+        self.should_close = False
         self.root = ctk.CTk()
         self.root.title("ThermalWatch Widget")
         
@@ -252,6 +253,10 @@ class TemperatureWidget:
         self.root.destroy()
 
     def update_loop(self):
+        if self.should_close:
+            self.close_widget()
+            return
+            
         try:
             cpu, gpu = self.get_temp_callback()
             
