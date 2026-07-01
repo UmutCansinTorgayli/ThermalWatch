@@ -86,7 +86,7 @@ We took that discovery and built it directly into ThermalWatch:
 
 ## 📸 What It Looks Like
 
-*(Add your screenshots here — tray icon hover tooltip, main dashboard, settings panel, and a sample Windows toast + phone push notification side-by-side make for a great showcase.)*
+*(Screenshots coming soon!)*
 
 ---
 
@@ -103,7 +103,7 @@ Choose whichever path fits you — grab the ready-to-go `.exe`, or run it straig
 
 The fastest way to get up and running. No Python required.
 
-1. Head to the **[Releases](https://github.com/yourusername/ThermalWatch/releases)** page and download the latest `ThermalWatch.exe`.
+1. Head to the **[Releases](https://github.com/UmutCansinTorgayli/ThermalWatch/releases)** page and download the latest `ThermalWatch.exe`.
 2. **Right-click → "Run as administrator"** *(see ⚠️ note below — this is not optional).*
 3. That's it. The tray icon should appear within a few seconds.
 4. **(AMD Ryzen users)** If CPU temperature shows `0°C` or `None`, jump to [Settings → Download PawnIO Driver](#5-the-amd-ryzen--pawnio-saga).
@@ -114,7 +114,7 @@ Since ThermalWatch is fully open source, you're welcome — and encouraged — t
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/ThermalWatch.git
+   git clone https://github.com/UmutCansinTorgayli/ThermalWatch.git
    cd ThermalWatch
    ```
 
