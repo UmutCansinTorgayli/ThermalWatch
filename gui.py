@@ -138,19 +138,19 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
 
     # Startup & Widget Options Checkboxes
     options_frame = ctk.CTkFrame(limits_tab, fg_color="transparent")
-    options_frame.pack(fill="x", padx=15, pady=(10, 0))
+    options_frame.pack(fill="x", padx=15, pady=(15, 0))
 
     startup_var = ctk.StringVar(value="on" if check_startup_status() else "off")
-    startup_checkbox = ctk.CTkCheckBox(options_frame, text="Start with Windows", variable=startup_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
-    startup_checkbox.pack(side="left", padx=(0, 12))
+    startup_checkbox = ctk.CTkCheckBox(options_frame, text="Start with Windows (Administrator)", variable=startup_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
+    startup_checkbox.pack(pady=4, anchor="w")
 
     show_usage_var = ctk.StringVar(value="on" if settings.get("widget-show-usage", True) else "off")
-    show_usage_checkbox = ctk.CTkCheckBox(options_frame, text="Show Usage (%)", variable=show_usage_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
-    show_usage_checkbox.pack(side="left", padx=(0, 12))
+    show_usage_checkbox = ctk.CTkCheckBox(options_frame, text="Show Usage (%) on Desktop Widget", variable=show_usage_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
+    show_usage_checkbox.pack(pady=4, anchor="w")
 
     show_fans_var = ctk.StringVar(value="on" if settings.get("widget-show-fans", True) else "off")
-    show_fans_checkbox = ctk.CTkCheckBox(options_frame, text="Show Fans (RPM)", variable=show_fans_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
-    show_fans_checkbox.pack(side="left")
+    show_fans_checkbox = ctk.CTkCheckBox(options_frame, text="Show Fan Speeds (RPM) on Desktop Widget", variable=show_fans_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
+    show_fans_checkbox.pack(pady=4, anchor="w")
 
     # ==========================================
     # TAB 2: TELEMETRY (LIVE DASHBOARD & FANS)
@@ -230,12 +230,31 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
         import math
         cx, cy = 30, 30
         radius = 20
-        # Draw 3 balanced blades at 120-degree angles
-        for i in range(3):
-            theta = math.radians(angle + i * 120)
-            x = cx + radius * math.cos(theta)
-            y = cy + radius * math.sin(theta)
-            canvas.create_line(cx, cy, x, y, width=4, fill=color, tags="blade")
+        num_blades = 9
+        
+        for i in range(num_blades):
+            # Base angle for this blade
+            base_angle = angle + i * (360 / num_blades)
+            
+            # Three angular offset points to draw aerodynamic curved blades
+            theta0 = math.radians(base_angle)
+            theta1 = math.radians(base_angle + 12)
+            theta2 = math.radians(base_angle + 20)
+            
+            # Start at edge of center hub
+            x0 = cx + 5 * math.cos(theta0)
+            y0 = cy + 5 * math.sin(theta0)
+            
+            # Mid curve point
+            x1 = cx + (radius * 0.5) * math.cos(theta1)
+            y1 = cy + (radius * 0.5) * math.sin(theta1)
+            
+            # Blade outer tip
+            x2 = cx + radius * math.cos(theta2)
+            y2 = cy + radius * math.sin(theta2)
+            
+            # Draw curved lines smoothly
+            canvas.create_line(x0, y0, x1, y1, x2, y2, smooth=True, width=2.5, fill=color, tags="blade")
 
     # Set canvas visual theme colors
     is_dark = ctk.get_appearance_mode() == "Dark"
