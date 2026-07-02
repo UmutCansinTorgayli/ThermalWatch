@@ -59,96 +59,348 @@ def set_startup_status(enable):
     except Exception:
         return False
 
-def open_settings_window(diagnose_callback=None):
-    """Opens the modern CustomTkinter settings window."""
+def open_settings_window(diagnose_callback=None, get_stats_callback=None):
+    """Opens the modern CustomTkinter settings window with tabs."""
     settings = load_settings()
 
     root = ctk.CTk()
-    root.title("ThermalWatch - Settings")
-    root.geometry("460x570")
+    root.title("ThermalWatch - Settings Dashboard")
+    root.geometry("460x520")
     root.resizable(False, False)
 
     # Header
     title_label = ctk.CTkLabel(root, text="ThermalWatch Configuration", font=("Helvetica", 16, "bold"), text_color="#3498db")
-    title_label.pack(pady=(15, 10))
+    title_label.pack(pady=(12, 5))
 
+    # 🗂️ CTkTabview Setup
+    tabview = ctk.CTkTabview(root, width=420, height=390, corner_radius=12)
+    tabview.pack(padx=20, pady=(0, 10), fill="both", expand=True)
+
+    tabview.add("Limits & Widget")
+    tabview.add("Telemetry")
+    tabview.add("AI Advisor")
+    tabview.add("PawnIO Help")
+
+    # ==========================================
+    # TAB 1: LIMITS & WIDGET CONFIGURATION
+    # ==========================================
+    limits_tab = tabview.tab("Limits & Widget")
+    
     # Two-column frame for limits (CPU / GPU Side-by-Side)
-    columns_frame = ctk.CTkFrame(root, fg_color="transparent")
-    columns_frame.pack(fill="x", padx=20, pady=5)
+    columns_frame = ctk.CTkFrame(limits_tab, fg_color="transparent")
+    columns_frame.pack(fill="x", padx=10, pady=5)
 
     # Left Column: CPU Settings
     cpu_frame = ctk.CTkFrame(columns_frame)
-    cpu_frame.pack(side="left", fill="both", expand=True, padx=(0, 10), pady=5)
+    cpu_frame.pack(side="left", fill="both", expand=True, padx=(0, 5), pady=5)
 
     cpu_header = ctk.CTkLabel(cpu_frame, text="CPU Settings", font=("Helvetica", 13, "bold"), text_color="#3498db")
-    cpu_header.pack(pady=(10, 5))
+    cpu_header.pack(pady=(8, 3))
 
     cpu_temp_label = ctk.CTkLabel(cpu_frame, text="Max Temp Limit (°C):")
-    cpu_temp_label.pack(pady=(5, 2))
+    cpu_temp_label.pack(pady=(2, 2))
     cpu_temp_entry = ctk.CTkEntry(cpu_frame, placeholder_text="e.g. 85", corner_radius=10, width=120)
     cpu_temp_entry.insert(0, str(settings.get("cpu-max-temperature", 85)))
-    cpu_temp_entry.pack(pady=(0, 10))
+    cpu_temp_entry.pack(pady=(0, 8))
 
     cpu_usage_label = ctk.CTkLabel(cpu_frame, text="Max Usage Limit (%):")
-    cpu_usage_label.pack(pady=(5, 2))
+    cpu_usage_label.pack(pady=(2, 2))
     cpu_usage_entry = ctk.CTkEntry(cpu_frame, placeholder_text="e.g. 95", corner_radius=10, width=120)
     cpu_usage_entry.insert(0, str(settings.get("cpu-max-usage", 95)))
-    cpu_usage_entry.pack(pady=(0, 15))
+    cpu_usage_entry.pack(pady=(0, 10))
 
     # Right Column: GPU Settings
     gpu_frame = ctk.CTkFrame(columns_frame)
-    gpu_frame.pack(side="right", fill="both", expand=True, padx=(10, 0), pady=5)
+    gpu_frame.pack(side="right", fill="both", expand=True, padx=(5, 0), pady=5)
 
     gpu_header = ctk.CTkLabel(gpu_frame, text="GPU Settings", font=("Helvetica", 13, "bold"), text_color="#2ecc71")
-    gpu_header.pack(pady=(10, 5))
+    gpu_header.pack(pady=(8, 3))
 
     gpu_temp_label = ctk.CTkLabel(gpu_frame, text="Max Temp Limit (°C):")
-    gpu_temp_label.pack(pady=(5, 2))
+    gpu_temp_label.pack(pady=(2, 2))
     gpu_temp_entry = ctk.CTkEntry(gpu_frame, placeholder_text="e.g. 80", corner_radius=10, width=120)
     gpu_temp_entry.insert(0, str(settings.get("gpu-max-temperature", 80)))
-    gpu_temp_entry.pack(pady=(0, 10))
+    gpu_temp_entry.pack(pady=(0, 8))
 
     gpu_usage_label = ctk.CTkLabel(gpu_frame, text="Max Usage Limit (%):")
-    gpu_usage_label.pack(pady=(5, 2))
+    gpu_usage_label.pack(pady=(2, 2))
     gpu_usage_entry = ctk.CTkEntry(gpu_frame, placeholder_text="e.g. 100", corner_radius=10, width=120)
     gpu_usage_entry.insert(0, str(settings.get("gpu-max-usage", 100)))
-    gpu_usage_entry.pack(pady=(0, 15))
+    gpu_usage_entry.pack(pady=(0, 10))
 
-    # 5. ntfy Topic
-    ntfy_label = ctk.CTkLabel(root, text="ntfy.sh Topic Name (Mobile Alerts):", anchor="w")
-    ntfy_label.pack(fill="x", padx=30, pady=(5, 2))
-    ntfy_entry = ctk.CTkEntry(root, placeholder_text="optional-topic-name", corner_radius=10)
+    # ntfy Topic Settings
+    ntfy_label = ctk.CTkLabel(limits_tab, text="ntfy.sh Topic Name (Mobile Alerts):", anchor="w")
+    ntfy_label.pack(fill="x", padx=15, pady=(5, 2))
+    ntfy_entry = ctk.CTkEntry(limits_tab, placeholder_text="optional-topic-name", corner_radius=10)
     topic_val = settings.get("ntfy-topic", "")
     ntfy_entry.insert(0, "" if topic_val is None else str(topic_val))
-    ntfy_entry.pack(fill="x", padx=30)
+    ntfy_entry.pack(fill="x", padx=15)
 
-    # 6. Startup Configuration & Widget Options Row 1
-    options_frame = ctk.CTkFrame(root, fg_color="transparent")
-    options_frame.pack(fill="x", padx=30, pady=(8, 0))
+    # Startup & Widget Options Checkboxes
+    options_frame = ctk.CTkFrame(limits_tab, fg_color="transparent")
+    options_frame.pack(fill="x", padx=15, pady=(10, 0))
 
     startup_var = ctk.StringVar(value="on" if check_startup_status() else "off")
     startup_checkbox = ctk.CTkCheckBox(options_frame, text="Start with Windows", variable=startup_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
-    startup_checkbox.pack(side="left", padx=(0, 15))
+    startup_checkbox.pack(side="left", padx=(0, 12))
 
     show_usage_var = ctk.StringVar(value="on" if settings.get("widget-show-usage", True) else "off")
     show_usage_checkbox = ctk.CTkCheckBox(options_frame, text="Show Usage (%)", variable=show_usage_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
-    show_usage_checkbox.pack(side="left", padx=(0, 15))
+    show_usage_checkbox.pack(side="left", padx=(0, 12))
 
     show_fans_var = ctk.StringVar(value="on" if settings.get("widget-show-fans", True) else "off")
     show_fans_checkbox = ctk.CTkCheckBox(options_frame, text="Show Fans (RPM)", variable=show_fans_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
     show_fans_checkbox.pack(side="left")
 
-    # Options Row 2 (AI Diagnostics Toggle)
-    options_frame2 = ctk.CTkFrame(root, fg_color="transparent")
-    options_frame2.pack(fill="x", padx=30, pady=(6, 0))
+    # ==========================================
+    # TAB 2: TELEMETRY (LIVE DASHBOARD & FANS)
+    # ==========================================
+    telemetry_tab = tabview.tab("Telemetry")
+    tel_frame = ctk.CTkFrame(telemetry_tab, fg_color="transparent")
+    tel_frame.pack(fill="both", expand=True, padx=10, pady=5)
+
+    # 1. CPU Telemetry Frame (Left Side)
+    cpu_tel = ctk.CTkFrame(tel_frame)
+    cpu_tel.pack(side="left", fill="both", expand=True, padx=(0, 5), pady=5)
+
+    cpu_tel_title = ctk.CTkLabel(cpu_tel, text="CPU Status", font=("Helvetica", 13, "bold"), text_color="#3498db")
+    cpu_tel_title.pack(pady=(8, 5))
+
+    cpu_t_lbl = ctk.CTkLabel(cpu_tel, text="Temp: --°C", font=("Helvetica", 11))
+    cpu_t_lbl.pack(anchor="w", padx=15)
+    cpu_t_bar = ctk.CTkProgressBar(cpu_tel, width=155)
+    cpu_t_bar.set(0)
+    cpu_t_bar.pack(padx=15, pady=(0, 8))
+
+    cpu_u_lbl = ctk.CTkLabel(cpu_tel, text="Usage: --%", font=("Helvetica", 11))
+    cpu_u_lbl.pack(anchor="w", padx=15)
+    cpu_u_bar = ctk.CTkProgressBar(cpu_tel, width=155)
+    cpu_u_bar.set(0)
+    cpu_u_bar.pack(padx=15, pady=(0, 8))
+
+    cpu_fan_lbl = ctk.CTkLabel(cpu_tel, text="Fan: -- RPM", font=("Helvetica", 11))
+    cpu_fan_lbl.pack(anchor="w", padx=15)
+
+    cpu_canvas_bg = cpu_tel._apply_appearance_mode(cpu_tel.cget("fg_color"))
+    cpu_canvas = ctk.CTkCanvas(cpu_tel, width=60, height=60, bg=cpu_canvas_bg, highlightthickness=0)
+    cpu_canvas.pack(pady=(5, 5))
+
+    # 2. GPU Telemetry Frame (Right Side)
+    gpu_tel = ctk.CTkFrame(tel_frame)
+    gpu_tel.pack(side="right", fill="both", expand=True, padx=(5, 0), pady=5)
+
+    gpu_tel_title = ctk.CTkLabel(gpu_tel, text="GPU Status", font=("Helvetica", 13, "bold"), text_color="#2ecc71")
+    gpu_tel_title.pack(pady=(8, 5))
+
+    gpu_t_lbl = ctk.CTkLabel(gpu_tel, text="Temp: --°C", font=("Helvetica", 11))
+    gpu_t_lbl.pack(anchor="w", padx=15)
+    gpu_t_bar = ctk.CTkProgressBar(gpu_tel, width=155)
+    gpu_t_bar.set(0)
+    gpu_t_bar.pack(padx=15, pady=(0, 8))
+
+    gpu_u_lbl = ctk.CTkLabel(gpu_tel, text="Usage: --%", font=("Helvetica", 11))
+    gpu_u_lbl.pack(anchor="w", padx=15)
+    gpu_u_bar = ctk.CTkProgressBar(gpu_tel, width=155)
+    gpu_u_bar.set(0)
+    gpu_u_bar.pack(padx=15, pady=(0, 8))
+
+    gpu_fan_lbl = ctk.CTkLabel(gpu_tel, text="Fan: -- RPM", font=("Helvetica", 11))
+    gpu_fan_lbl.pack(anchor="w", padx=15)
+
+    gpu_canvas_bg = gpu_tel._apply_appearance_mode(gpu_tel.cget("fg_color"))
+    gpu_canvas = ctk.CTkCanvas(gpu_tel, width=60, height=60, bg=gpu_canvas_bg, highlightthickness=0)
+    gpu_canvas.pack(pady=(5, 5))
+
+    # Shared telemetry values cache for animation
+    tel_stats = {
+        "cpu_temp": 0.0, "gpu_temp": 0.0,
+        "cpu_usage": 0.0, "gpu_usage": 0.0,
+        "cpu_fan": None, "gpu_fan": None
+    }
+
+    # Vector Drawing Functions for Fan Canvas
+    def init_fan_canvas(canvas, color):
+        # Outer casing ring
+        canvas.create_oval(5, 5, 55, 55, outline=color, width=2)
+        # Center core hub
+        canvas.create_oval(25, 25, 35, 35, fill=color, outline="")
+
+    def draw_fan_blades(canvas, angle, color):
+        canvas.delete("blade")
+        import math
+        cx, cy = 30, 30
+        radius = 20
+        # Draw 3 balanced blades at 120-degree angles
+        for i in range(3):
+            theta = math.radians(angle + i * 120)
+            x = cx + radius * math.cos(theta)
+            y = cy + radius * math.sin(theta)
+            canvas.create_line(cx, cy, x, y, width=4, fill=color, tags="blade")
+
+    # Set canvas visual theme colors
+    is_dark = ctk.get_appearance_mode() == "Dark"
+    cpu_fan_color = "#3498db" if is_dark else "#2980b9"
+    gpu_fan_color = "#2ecc71" if is_dark else "#27ae60"
+    tel_border_color = "#45475a" if is_dark else "#ccd0da"
+
+    init_fan_canvas(cpu_canvas, tel_border_color)
+    init_fan_canvas(gpu_canvas, tel_border_color)
+
+    # 25 FPS (40ms) Animation Loop (No Hardware Queries)
+    cpu_angle = 0
+    gpu_angle = 0
+
+    def animate_fans_loop():
+        nonlocal cpu_angle, gpu_angle
+        if not root.winfo_exists():
+            return
+
+        try:
+            # CPU Fan Animation
+            c_rpm = tel_stats["cpu_fan"]
+            if c_rpm and c_rpm > 0:
+                # Rotation speed is proportional to RPM (bounded between 2 and 20 deg per frame)
+                cpu_step = min(20, max(2, c_rpm / 150))
+                cpu_angle = (cpu_angle + cpu_step) % 360
+                draw_fan_blades(cpu_canvas, cpu_angle, cpu_fan_color)
+            else:
+                # Keep still if 0 RPM
+                draw_fan_blades(cpu_canvas, cpu_angle, cpu_fan_color)
+
+            # GPU Fan Animation
+            g_rpm = tel_stats["gpu_fan"]
+            if g_rpm and g_rpm > 0:
+                gpu_step = min(20, max(2, g_rpm / 150))
+                gpu_angle = (gpu_angle + gpu_step) % 360
+                draw_fan_blades(gpu_canvas, gpu_angle, gpu_fan_color)
+            else:
+                draw_fan_blades(gpu_canvas, gpu_angle, gpu_fan_color)
+        except Exception as e:
+            print(f"Fan animation loop error: {e}")
+
+        root.after(40, animate_fans_loop)
+
+    # 1000ms Sensor State Update Loop (Queries hardware stats)
+    def update_telemetry_loop():
+        if not root.winfo_exists():
+            return
+
+        try:
+            if get_stats_callback is not None:
+                cpu_temp, gpu_temp, cpu_usage, gpu_usage, cpu_fan, gpu_fan = get_stats_callback()
+
+                # Save stats to cache for the fast animator loop
+                tel_stats["cpu_temp"] = cpu_temp
+                tel_stats["gpu_temp"] = gpu_temp
+                tel_stats["cpu_usage"] = cpu_usage
+                tel_stats["gpu_usage"] = gpu_usage
+                tel_stats["cpu_fan"] = cpu_fan
+                tel_stats["gpu_fan"] = gpu_fan
+
+                c_temp = cpu_temp if cpu_temp else 0.0
+                g_temp = gpu_temp if gpu_temp else 0.0
+                c_usage = cpu_usage if cpu_usage else 0.0
+                g_usage = gpu_usage if gpu_usage else 0.0
+
+                # 1. Update Labels text
+                cpu_t_lbl.configure(text=f"Temp: {c_temp:.1f}°C")
+                cpu_u_lbl.configure(text=f"Usage: {c_usage:.0f}%")
+                cpu_fan_lbl.configure(text=f"Fan: {f'{cpu_fan:.0f} RPM' if cpu_fan else 'N/A'}")
+
+                gpu_t_lbl.configure(text=f"Temp: {g_temp:.1f}°C")
+                gpu_u_lbl.configure(text=f"Usage: {g_usage:.0f}%")
+                gpu_fan_lbl.configure(text=f"Fan: {f'{gpu_fan:.0f} RPM' if gpu_fan else 'N/A'}")
+
+                # 2. Update Progress Bars (Values normalized to 0.0 - 1.0)
+                cpu_t_bar.set(min(1.0, max(0.0, c_temp / 100.0)))
+                cpu_u_bar.set(min(1.0, max(0.0, c_usage / 100.0)))
+                
+                gpu_t_bar.set(min(1.0, max(0.0, g_temp / 100.0)))
+                gpu_u_bar.set(min(1.0, max(0.0, g_usage / 100.0)))
+
+                # 3. Dynamic Progress Bar Colors based on warning levels
+                c_limit = settings.get("cpu-max-temperature", 85)
+                g_limit = settings.get("gpu-max-temperature", 80)
+
+                if c_temp >= c_limit:
+                    cpu_t_bar.configure(progress_color="#f38ba8")  # Red
+                elif c_temp >= (c_limit - 5):
+                    cpu_t_bar.configure(progress_color="#f9e2af")  # Yellow
+                else:
+                    cpu_t_bar.configure(progress_color="#a6e3a1")  # Green
+
+                if g_temp >= g_limit:
+                    gpu_t_bar.configure(progress_color="#f38ba8")
+                elif g_temp >= (g_limit - 5):
+                    gpu_t_bar.configure(progress_color="#f9e2af")
+                else:
+                    gpu_t_bar.configure(progress_color="#a6e3a1")
+
+        except Exception as e:
+            print(f"Telemetry update loop error: {e}")
+
+        root.after(1000, update_telemetry_loop)
+
+    # Start loops only if get_stats_callback is present
+    if get_stats_callback is not None:
+        update_telemetry_loop()
+        animate_fans_loop()
+
+    # ==========================================
+    # TAB 3: AI ADVISOR (OLLAMA CONFIGURATION)
+    # ==========================================
+    ai_tab = tabview.tab("AI Advisor")
+    ai_frame = ctk.CTkFrame(ai_tab, fg_color="transparent")
+    ai_frame.pack(fill="both", expand=True, padx=15, pady=10)
+
+    ai_header = ctk.CTkLabel(ai_frame, text="Offline AI Advisor (Ollama)", font=("Helvetica", 14, "bold"), text_color="#9b59b6")
+    ai_header.pack(pady=(0, 8), anchor="w")
 
     use_ollama_var = ctk.StringVar(value="on" if settings.get("use-local-ollama", False) else "off")
-    use_ollama_checkbox = ctk.CTkCheckBox(options_frame2, text="Enable Local Ollama AI Diagnostics", variable=use_ollama_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
-    use_ollama_checkbox.pack(side="left")
+    use_ollama_checkbox = ctk.CTkCheckBox(ai_frame, text="Enable Local Ollama AI Diagnostics", variable=use_ollama_var, onvalue="on", offvalue="off", font=("Helvetica", 12, "bold"), corner_radius=6)
+    use_ollama_checkbox.pack(pady=5, anchor="w")
 
-    ollama_info_label = ctk.CTkLabel(root, text="💡 Requires Ollama (ollama.com) running locally with at least one model.", font=("Helvetica", 9), text_color="#bdc3c7", anchor="w")
-    ollama_info_label.pack(fill="x", padx=30, pady=(2, 0))
+    ai_desc = (
+        "When enabled, ThermalWatch will query Ollama locally\n"
+        "to generate smart PC health recommendations.\n\n"
+        "Requirements:\n"
+        "1. Download & install Ollama from https://ollama.com\n"
+        "2. Keep Ollama running in the background\n"
+        "3. Download at least one model (e.g. 'ollama run gemma2')"
+    )
+    ai_desc_label = ctk.CTkLabel(ai_frame, text=ai_desc, font=("Helvetica", 11), text_color="#bdc3c7", justify="left")
+    ai_desc_label.pack(pady=10, anchor="w")
 
+    # ==========================================
+    # TAB 4: PAWNIO HELP (RYZEN TROUBLESHOOTING)
+    # ==========================================
+    pawn_tab = tabview.tab("PawnIO Help")
+    pawn_frame = ctk.CTkFrame(pawn_tab, fg_color="transparent")
+    pawn_frame.pack(fill="both", expand=True, padx=15, pady=10)
+
+    pawn_header = ctk.CTkLabel(pawn_frame, text="AMD Ryzen Temperature Fix", font=("Helvetica", 14, "bold"), text_color="#e67e22")
+    pawn_header.pack(pady=(0, 8), anchor="w")
+
+    pawn_text = (
+        "💡 CPU N/A Troubleshooting:\n\n"
+        "1. Always run ThermalWatch 'As Administrator'.\n"
+        "2. If CPU temperature is still not showing on AMD Ryzen,\n"
+        "   you must install the PawnIO driver.\n"
+        "3. PawnIO is a secure driver compatible with Core Isolation."
+    )
+    pawn_desc = ctk.CTkLabel(pawn_frame, text=pawn_text, font=("Helvetica", 11), text_color="#bdc3c7", justify="left")
+    pawn_desc.pack(pady=5, anchor="w")
+
+    import webbrowser
+    def open_pawnio():
+        webbrowser.open("https://pawnio.eu/")
+
+    pawnio_btn = ctk.CTkButton(pawn_frame, text="Download PawnIO Driver", command=open_pawnio, fg_color="#e67e22", hover_color="#d35400", corner_radius=10, width=150)
+    pawnio_btn.pack(pady=12, anchor="w")
+
+    # ==========================================
+    # SAVE & CANCEL & DIAGNOSTIC ACTIONS ROW
+    # ==========================================
     def save_action():
         try:
             new_settings = {
@@ -181,9 +433,9 @@ def open_settings_window(diagnose_callback=None):
         except ValueError:
             messagebox.showerror("Invalid Input", "Please enter valid numeric values for limits.")
 
-    # Action Buttons Row
+    # Action Buttons Row (At the bottom of the window, outside the tabview)
     button_frame = ctk.CTkFrame(root, fg_color="transparent")
-    button_frame.pack(fill="x", padx=30, pady=(15, 10))
+    button_frame.pack(fill="x", padx=30, pady=(5, 15))
 
     save_btn = ctk.CTkButton(button_frame, text="Save Settings", command=save_action, width=125, corner_radius=10)
     save_btn.pack(side="left", padx=(0, 10))
@@ -206,20 +458,6 @@ def open_settings_window(diagnose_callback=None):
             width=125
         )
         diagnose_btn.pack(side="left")
-
-    # Bottom frame for troubleshooting info
-    trouble_frame = ctk.CTkFrame(root)
-    trouble_frame.pack(fill="x", padx=20, pady=(10, 15))
-
-    info_label = ctk.CTkLabel(trouble_frame, text="💡 CPU N/A on AMD Ryzen? Run as Admin and install PawnIO driver.", font=("Helvetica", 9), text_color="#bdc3c7")
-    info_label.pack(side="left", padx=10, pady=8)
-
-    import webbrowser
-    def open_pawnio():
-        webbrowser.open("https://pawnio.eu/")
-
-    pawnio_btn = ctk.CTkButton(trouble_frame, text="Get PawnIO", command=open_pawnio, fg_color="#e67e22", hover_color="#d35400", corner_radius=8, width=95)
-    pawnio_btn.pack(side="right", padx=10, pady=8)
 
     root.mainloop()
 
