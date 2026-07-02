@@ -74,7 +74,21 @@ def create_circle_icon(color):
 
 def show_settings():
     from gui import open_settings_window
-    threading.Thread(target=lambda: open_settings_window(diagnose_callback=diagnose_system), daemon=True).start()
+    get_stats = lambda: (
+        current_cpu_temp,
+        current_gpu_temp,
+        current_cpu_usage,
+        current_gpu_usage,
+        current_cpu_fan,
+        current_gpu_fan
+    )
+    threading.Thread(
+        target=lambda: open_settings_window(
+            diagnose_callback=diagnose_system,
+            get_stats_callback=get_stats
+        ),
+        daemon=True
+    ).start()
 
 
 def update_menu(icon):
@@ -237,62 +251,101 @@ def diagnose_system():
     else:
         rule_report = "\n".join(diagnostics)
 
-    # Read configuration for Ollama
+    # Read configuration for selected AI engine
     settings = load_settings()
-    use_ollama = settings.get("use-local-ollama", False)
-    if not use_ollama:
+    ai_engine = settings.get("ai-engine", "none")
+    
+    if ai_engine == "none":
         return rule_report
 
-    try:
-        import requests
-        # Check if Ollama is running and query installed models
-        tags_response = requests.get("http://localhost:11434/api/tags", timeout=2)
-        if tags_response.status_code != 200:
-            return f"⚠️ Ollama API Error (Status {tags_response.status_code}). Fallback Report:\n\n{rule_report}"
-            
-        models_data = tags_response.json()
-        models = models_data.get("models", [])
-        if not models:
-            return f"⚠️ Ollama is running but no local models are installed.\nRun 'ollama run gemma2' or similar in command prompt.\n\nFallback Report:\n\n{rule_report}"
-            
-        # Select first available model
-        selected_model = models[0]["name"]
-        
-        # Format metrics history summary for LLM
-        telemetry = {
-            "avg_cpu_temp": f"{avg_cpu_temp:.1f}°C",
-            "avg_gpu_temp": f"{avg_gpu_temp:.1f}°C" if avg_gpu_temp > 0.0 else "N/A",
-            "avg_cpu_usage": f"{avg_cpu_usage:.1f}%",
-            "avg_gpu_usage": f"{avg_gpu_usage:.1f}%",
-            "avg_cpu_fan": f"{avg_cpu_fan:.0f} RPM" if avg_cpu_fan else "N/A",
-            "avg_gpu_fan": f"{avg_gpu_fan:.0f} RPM" if avg_gpu_fan else "N/A"
-        }
-        
+    # Format telemetry data for LLM
+    telemetry = {
+        "avg_cpu_temp": f"{avg_cpu_temp:.1f}°C",
+        "avg_gpu_temp": f"{avg_gpu_temp:.1f}°C" if avg_gpu_temp > 0.0 else "N/A",
+        "avg_cpu_usage": f"{avg_cpu_usage:.1f}%",
+        "avg_gpu_usage": f"{avg_gpu_usage:.1f}%",
+        "avg_cpu_fan": f"{avg_cpu_fan:.0f} RPM" if avg_cpu_fan else "N/A",
+        "avg_gpu_fan": f"{avg_gpu_fan:.0f} RPM" if avg_gpu_fan else "N/A"
+    }
+
+    import requests
+
+    # --- 1. GOOGLE GEMINI CLOUD AI ---
+    if ai_engine == "gemini":
+        api_key = settings.get("gemini-api-key", "").strip()
+        if not api_key:
+            return f"⚠️ Gemini API key is missing. Paste your key in Settings -> AI Advisor.\n\nFallback Report:\n\n{rule_report}"
+
         prompt = (
             f"Analyze this rolling 10-minute sensor telemetry:\n"
             f"{telemetry}\n\n"
             f"Rule-based diagnostic flags: {diagnostics if diagnostics else 'No issues detected.'}\n\n"
-            f"Diagnose if the temperatures and fan speeds are normal for these usage loads. Suggest recommendations only if there are anomalies."
+            f"You are a professional PC hardware thermal and performance analyst. Give a friendly, extremely concise (max 3 sentences) diagnostics report in Turkish. Suggest recommendations only if there are anomalies."
         )
-        
-        payload = {
-            "model": selected_model,
-            "messages": [
-                {"role": "system", "content": "You are a professional PC hardware thermal and performance analyst. Give a friendly, extremely concise (max 3 sentences) diagnostics report. Answer in English."},
-                {"role": "user", "content": prompt}
-            ],
-            "stream": False
-        }
-        
-        chat_response = requests.post("http://localhost:11434/api/chat", json=payload, timeout=8)
-        if chat_response.status_code == 200:
-            ai_content = chat_response.json().get("message", {}).get("content", "").strip()
-            return f"🤖 [AI Health Report ({selected_model})]\n\n{ai_content}"
-        else:
-            return f"⚠️ Ollama returned error {chat_response.status_code}. Fallback Report:\n\n{rule_report}"
+
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+            headers = {"Content-Type": "application/json"}
+            payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": prompt}
+                        ]
+                    }
+                ]
+            }
+            response = requests.post(url, headers=headers, json=payload, timeout=6)
+            if response.status_code == 200:
+                res_data = response.json()
+                ai_content = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
+                return f"🤖 [Gemini AI Health Report]\n\n{ai_content}"
+            else:
+                return f"⚠️ Gemini API Error (Status {response.status_code}). Fallback Report:\n\n{rule_report}"
+        except Exception as e:
+            return f"⚠️ Could not connect to Gemini API. Check your internet connection.\n\nFallback Report:\n\n{rule_report}"
+
+    # --- 2. LOCAL OLLAMA OFFLINE AI ---
+    elif ai_engine == "ollama":
+        try:
+            # Check if Ollama is running and query installed models
+            tags_response = requests.get("http://localhost:11434/api/tags", timeout=2)
+            if tags_response.status_code != 200:
+                return f"⚠️ Ollama API Error (Status {tags_response.status_code}). Fallback Report:\n\n{rule_report}"
+                
+            models_data = tags_response.json()
+            models = models_data.get("models", [])
+            if not models:
+                return f"⚠️ Ollama is running but no local models are installed.\nUse Auto-Install or pull a model in CMD.\n\nFallback Report:\n\n{rule_report}"
+                
+            # Select first available model
+            selected_model = models[0]["name"]
             
-    except Exception as e:
-        return f"⚠️ Could not connect to Ollama (Connection Refused or Timeout).\nMake sure Ollama is open and running.\n\nFallback Report:\n\n{rule_report}"
+            prompt = (
+                f"Analyze this rolling 10-minute sensor telemetry:\n"
+                f"{telemetry}\n\n"
+                f"Rule-based diagnostic flags: {diagnostics if diagnostics else 'No issues detected.'}\n\n"
+                f"Diagnose if the temperatures and fan speeds are normal for these usage loads. Suggest recommendations only if there are anomalies."
+            )
+            
+            payload = {
+                "model": selected_model,
+                "messages": [
+                    {"role": "system", "content": "You are a professional PC hardware thermal and performance analyst. Give a friendly, extremely concise (max 3 sentences) diagnostics report. Answer in Turkish."},
+                    {"role": "user", "content": prompt}
+                ],
+                "stream": False
+            }
+            
+            chat_response = requests.post("http://localhost:11434/api/chat", json=payload, timeout=8)
+            if chat_response.status_code == 200:
+                ai_content = chat_response.json().get("message", {}).get("content", "").strip()
+                return f"🤖 [AI Health Report ({selected_model})]\n\n{ai_content}"
+            else:
+                return f"⚠️ Ollama returned error {chat_response.status_code}. Fallback Report:\n\n{rule_report}"
+                
+        except Exception as e:
+            return f"⚠️ Could not connect to Ollama (Connection Refused or Timeout).\nMake sure Ollama is open and running.\n\nFallback Report:\n\n{rule_report}"
 
 
 def main():

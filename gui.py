@@ -366,29 +366,181 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
         animate_fans_loop()
 
     # ==========================================
-    # TAB 3: AI ADVISOR (OLLAMA CONFIGURATION)
+    # TAB 3: AI ADVISOR (OLLAMA & GEMINI CONFIG)
     # ==========================================
     ai_tab = tabview.tab("AI Advisor")
     ai_frame = ctk.CTkFrame(ai_tab, fg_color="transparent")
     ai_frame.pack(fill="both", expand=True, padx=15, pady=10)
 
-    ai_header = ctk.CTkLabel(ai_frame, text="Offline AI Advisor (Ollama)", font=("Helvetica", 14, "bold"), text_color="#9b59b6")
-    ai_header.pack(pady=(0, 8), anchor="w")
+    ai_header = ctk.CTkLabel(ai_frame, text="Select AI Diagnostics Engine:", font=("Helvetica", 13, "bold"), text_color="#9b59b6")
+    ai_header.pack(pady=(0, 5), anchor="w")
 
-    use_ollama_var = ctk.StringVar(value="on" if settings.get("use-local-ollama", False) else "off")
-    use_ollama_checkbox = ctk.CTkCheckBox(ai_frame, text="Enable Local Ollama AI Diagnostics", variable=use_ollama_var, onvalue="on", offvalue="off", font=("Helvetica", 12, "bold"), corner_radius=6)
-    use_ollama_checkbox.pack(pady=5, anchor="w")
+    # Load initial engine setting
+    engine_reverse_map = {
+        "none": "None (Rule-based)",
+        "gemini": "Google Gemini (Cloud - Free)",
+        "ollama": "Local Ollama (Offline AI)"
+    }
+    initial_engine = engine_reverse_map.get(settings.get("ai-engine", "none"), "None (Rule-based)")
+    
+    ai_engine_var = ctk.StringVar(value=initial_engine)
 
-    ai_desc = (
-        "When enabled, ThermalWatch will query Ollama locally\n"
-        "to generate smart PC health recommendations.\n\n"
-        "Requirements:\n"
-        "1. Download & install Ollama from https://ollama.com\n"
-        "2. Keep Ollama running in the background\n"
-        "3. Download at least one model (e.g. 'ollama run gemma2')"
+    # Engine Frames for Dynamic Switching
+    gemini_frame = ctk.CTkFrame(ai_frame, fg_color="transparent")
+    ollama_frame = ctk.CTkFrame(ai_frame, fg_color="transparent")
+    none_frame = ctk.CTkFrame(ai_frame, fg_color="transparent")
+
+    def on_engine_change(choice):
+        gemini_frame.pack_forget()
+        ollama_frame.pack_forget()
+        none_frame.pack_forget()
+
+        if choice == "Google Gemini (Cloud - Free)":
+            gemini_frame.pack(fill="both", expand=True, pady=5)
+        elif choice == "Local Ollama (Offline AI)":
+            ollama_frame.pack(fill="both", expand=True, pady=5)
+        else:
+            none_frame.pack(fill="both", expand=True, pady=5)
+
+    ai_engine_menu = ctk.CTkOptionMenu(
+        ai_frame, 
+        values=["None (Rule-based)", "Google Gemini (Cloud - Free)", "Local Ollama (Offline AI)"],
+        variable=ai_engine_var,
+        command=on_engine_change,
+        width=250,
+        corner_radius=8
     )
-    ai_desc_label = ctk.CTkLabel(ai_frame, text=ai_desc, font=("Helvetica", 11), text_color="#bdc3c7", justify="left")
-    ai_desc_label.pack(pady=10, anchor="w")
+    ai_engine_menu.pack(anchor="w", pady=(0, 10))
+
+    # --- 1. NONE FRAME ---
+    ctk.CTkLabel(none_frame, text="✅ Classic Rule-based Advisor Active", font=("Helvetica", 12, "bold"), text_color="#3498db").pack(anchor="w", pady=(5, 2))
+    desc_none = (
+        "💡 Built-in Advisor features:\n"
+        "- Instantaneous response.\n"
+        "- Zero resource usage (0% CPU, 0 MB memory overhead).\n"
+        "- No Internet connection or external software required."
+    )
+    ctk.CTkLabel(none_frame, text=desc_none, font=("Helvetica", 11), text_color="#bdc3c7", justify="left", anchor="w").pack(anchor="w", pady=5)
+
+    # --- 2. GEMINI FRAME ---
+    ctk.CTkLabel(gemini_frame, text="Gemini API Key:", font=("Helvetica", 11, "bold")).pack(anchor="w", pady=(2, 2))
+    gemini_key_entry = ctk.CTkEntry(gemini_frame, placeholder_text="Paste your API key here...", width=350, corner_radius=8)
+    gemini_key_entry.insert(0, settings.get("gemini-api-key", ""))
+    gemini_key_entry.pack(anchor="w", pady=(0, 5))
+
+    def open_ai_studio():
+        import webbrowser
+        webbrowser.open("https://aistudio.google.com/app/apikey")
+
+    get_key_btn = ctk.CTkButton(gemini_frame, text="🔑 Get Free API Key (Google AI Studio)", command=open_ai_studio, fg_color="#9b59b6", hover_color="#8e44ad", corner_radius=10, width=240, height=28, font=("Helvetica", 11, "bold"))
+    get_key_btn.pack(anchor="w", pady=(0, 8))
+
+    desc_gemini = (
+        "💡 Cloud AI features:\n"
+        "- 100% Free: Google's developer tier has no costs.\n"
+        "- High Speed: Diagnostics are analyzed in under 1 second.\n"
+        "- Zero Installation: Nothing to download or run on your PC."
+    )
+    ctk.CTkLabel(gemini_frame, text=desc_gemini, font=("Helvetica", 11), text_color="#bdc3c7", justify="left", anchor="w").pack(anchor="w", pady=2)
+
+    # --- 3. OLLAMA FRAME ---
+    status_label = ctk.CTkLabel(ollama_frame, text="Status: Ready", font=("Helvetica", 11, "italic"), text_color="#bdc3c7")
+
+    def install_ollama_background(lbl, btn):
+        import threading
+        import urllib.request
+        import os
+        import subprocess
+        import tempfile
+        import shutil
+        import time
+
+        def run():
+            try:
+                btn.configure(state="disabled")
+                lbl.configure(text="📥 Downloading Ollama Installer (220MB)...", text_color="#e67e22")
+                
+                # 1. Download Setup Executable
+                installer_url = "https://ollama.com/download/OllamaSetup.exe"
+                temp_dir = tempfile.gettempdir()
+                installer_path = os.path.join(temp_dir, "OllamaSetup.exe")
+                
+                req = urllib.request.Request(installer_url, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req) as response, open(installer_path, 'wb') as out_file:
+                    total_size = int(response.info().get('Content-Length', 0))
+                    downloaded = 0
+                    block_size = 1024 * 64
+                    while True:
+                        buffer = response.read(block_size)
+                        if not buffer:
+                            break
+                        downloaded += len(buffer)
+                        out_file.write(buffer)
+                        percent = int(downloaded * 100 / total_size) if total_size else 0
+                        lbl.configure(text=f"📥 Downloading: {percent}%")
+                        
+                lbl.configure(text="⚙️ Launching installer... Please click Install.", text_color="#e67e22")
+                
+                # 2. Run the installer (wait for user)
+                proc = subprocess.Popen([installer_path])
+                proc.wait()
+                
+                # 3. Wait for Service & Pull Model
+                lbl.configure(text="🔄 Starting Ollama service...", text_color="#e67e22")
+                time.sleep(6)
+                
+                local_appdata = os.environ.get("LOCALAPPDATA", "")
+                ollama_bin = os.path.join(local_appdata, "Programs", "Ollama", "ollama.exe")
+                
+                if not os.path.exists(ollama_bin):
+                    ollama_bin = shutil.which("ollama.exe") or "ollama"
+                    
+                lbl.configure(text="📥 Pulling Qwen2.5:1.5b model (approx. 900MB)...", text_color="#e67e22")
+                
+                pull_proc = subprocess.Popen(
+                    [ollama_bin, "pull", "qwen2.5:1.5b"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+                )
+                
+                while True:
+                    line = pull_proc.stdout.readline()
+                    if not line:
+                        break
+                    if "pulling" in line.lower() or "downloading" in line.lower():
+                        clean_line = line.strip().replace("\r", "").replace("\n", "")
+                        if len(clean_line) > 40:
+                            clean_line = clean_line[:40] + "..."
+                        lbl.configure(text=f"🤖 {clean_line}")
+                
+                pull_proc.wait()
+                lbl.configure(text="✅ Ollama & Model installed successfully!", text_color="#2ecc71")
+            except Exception as e:
+                lbl.configure(text=f"❌ Installation failed: {str(e)[:30]}", text_color="#e74c3c")
+            finally:
+                btn.configure(state="normal")
+
+        threading.Thread(target=run, daemon=True).start()
+
+    def on_install_click():
+        install_ollama_background(status_label, install_btn)
+
+    install_btn = ctk.CTkButton(ollama_frame, text="📥 Auto-Install Ollama & Model", command=on_install_click, fg_color="#2ecc71", hover_color="#27ae60", corner_radius=10, width=240, height=28, font=("Helvetica", 11, "bold"))
+    install_btn.pack(anchor="w", pady=(2, 2))
+    status_label.pack(anchor="w", pady=2)
+
+    desc_ollama = (
+        "💡 Local AI features:\n"
+        "- 100% Offline: Data never leaves your PC.\n"
+        "- Requirements: Download approx. 200MB installer + 900MB Qwen model.\n"
+        "- Click Auto-Install to automate this process in the background."
+    )
+    ctk.CTkLabel(ollama_frame, text=desc_ollama, font=("Helvetica", 11), text_color="#bdc3c7", justify="left", anchor="w").pack(anchor="w", pady=2)
+
+    # Initialize correct Switch Frame
+    on_engine_change(initial_engine)
 
     # ==========================================
     # TAB 4: PAWNIO HELP (RYZEN TROUBLESHOOTING)
@@ -422,6 +574,13 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
     # ==========================================
     def save_action():
         try:
+            engine_map = {
+                "None (Rule-based)": "none",
+                "Google Gemini (Cloud - Free)": "gemini",
+                "Local Ollama (Offline AI)": "ollama"
+            }
+            selected_engine = engine_map.get(ai_engine_var.get(), "none")
+
             new_settings = {
                 "cpu-max-temperature": int(cpu_temp_entry.get()),
                 "gpu-max-temperature": int(gpu_temp_entry.get()),
@@ -430,7 +589,8 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
                 "ntfy-topic": ntfy_entry.get().strip() or None,
                 "widget-show-usage": show_usage_var.get() == "on",
                 "widget-show-fans": show_fans_var.get() == "on",
-                "use-local-ollama": use_ollama_var.get() == "on"
+                "ai-engine": selected_engine,
+                "gemini-api-key": gemini_key_entry.get().strip()
             }
 
             if (
