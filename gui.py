@@ -456,10 +456,10 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
     button_frame = ctk.CTkFrame(root, fg_color="transparent")
     button_frame.pack(fill="x", padx=30, pady=(5, 15))
 
-    save_btn = ctk.CTkButton(button_frame, text="Save Settings", command=save_action, width=125, corner_radius=10)
+    save_btn = ctk.CTkButton(button_frame, text="Save Settings", command=save_action, width=125, height=35, font=("Helvetica", 11, "bold"), corner_radius=10)
     save_btn.pack(side="left", padx=(0, 10))
 
-    cancel_btn = ctk.CTkButton(button_frame, text="Cancel", fg_color="#34495e", hover_color="#2c3e50", command=root.destroy, width=125, corner_radius=10)
+    cancel_btn = ctk.CTkButton(button_frame, text="Cancel", fg_color="#34495e", hover_color="#2c3e50", command=root.destroy, width=125, height=35, font=("Helvetica", 11, "bold"), corner_radius=10)
     cancel_btn.pack(side="left", padx=(0, 10))
 
     if diagnose_callback is not None:
@@ -474,7 +474,9 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
             fg_color="#2ecc71", 
             hover_color="#27ae60", 
             corner_radius=10,
-            width=125
+            width=125,
+            height=35,
+            font=("Helvetica", 11, "bold")
         )
         diagnose_btn.pack(side="left")
 
