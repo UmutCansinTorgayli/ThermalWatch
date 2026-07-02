@@ -310,8 +310,44 @@ def diagnose_system():
 
     # --- 2. LOCAL OLLAMA OFFLINE AI ---
     elif ai_engine == "ollama":
+        # Auto-start Ollama if it's installed but not currently running
+        ollama_running = False
         try:
-            # Check if Ollama is running and query installed models
+            requests.get("http://localhost:11434/api/tags", timeout=1.5)
+            ollama_running = True
+        except Exception:
+            # Try starting it from standard locations
+            import subprocess
+            import shutil
+            
+            appdata = os.environ.get("LOCALAPPDATA", "")
+            ollama_bin = os.path.join(appdata, "Programs", "Ollama", "ollama.exe")
+            is_installed = os.path.exists(ollama_bin) or (shutil.which("ollama.exe") is not None)
+            
+            if is_installed:
+                try:
+                    path = ollama_bin if os.path.exists(ollama_bin) else (shutil.which("ollama.exe") or "ollama")
+                    
+                    # On Windows, launch as background process with hidden window
+                    si = subprocess.STARTUPINFO()
+                    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    si.wShowWindow = 0 # SW_HIDE
+                    subprocess.Popen([path], startupinfo=si, creationflags=subprocess.CREATE_NO_WINDOW, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    
+                    # Wait up to 6 seconds for the service to bind to local port
+                    for _ in range(6):
+                        time.sleep(1)
+                        try:
+                            requests.get("http://localhost:11434/api/tags", timeout=1)
+                            ollama_running = True
+                            break
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+
+        try:
+            # Query installed models (fails gracefully if still unable to connect)
             tags_response = requests.get("http://localhost:11434/api/tags", timeout=2)
             if tags_response.status_code != 200:
                 return f"⚠️ Ollama API Error (Status {tags_response.status_code}). Fallback Report:\n\n{rule_report}"
