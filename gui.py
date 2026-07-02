@@ -65,44 +65,58 @@ def open_settings_window(diagnose_callback=None):
 
     root = ctk.CTk()
     root.title("ThermalWatch - Settings")
-    root.geometry("340x640")
+    root.geometry("460x420")
     root.resizable(False, False)
 
     # Header
     title_label = ctk.CTkLabel(root, text="ThermalWatch Configuration", font=("Helvetica", 16, "bold"), text_color="#3498db")
     title_label.pack(pady=(15, 10))
 
-    # 1. CPU Max Temp
-    cpu_temp_label = ctk.CTkLabel(root, text="CPU Max Temperature (°C):", anchor="w")
-    cpu_temp_label.pack(fill="x", padx=30, pady=(5, 2))
-    cpu_temp_entry = ctk.CTkEntry(root, placeholder_text="e.g. 85", corner_radius=10)
+    # Two-column frame for limits (CPU / GPU Side-by-Side)
+    columns_frame = ctk.CTkFrame(root, fg_color="transparent")
+    columns_frame.pack(fill="x", padx=20, pady=5)
+
+    # Left Column: CPU Settings
+    cpu_frame = ctk.CTkFrame(columns_frame)
+    cpu_frame.pack(side="left", fill="both", expand=True, padx=(0, 10), pady=5)
+
+    cpu_header = ctk.CTkLabel(cpu_frame, text="CPU Settings", font=("Helvetica", 13, "bold"), text_color="#3498db")
+    cpu_header.pack(pady=(10, 5))
+
+    cpu_temp_label = ctk.CTkLabel(cpu_frame, text="Max Temp Limit (°C):")
+    cpu_temp_label.pack(pady=(5, 2))
+    cpu_temp_entry = ctk.CTkEntry(cpu_frame, placeholder_text="e.g. 85", corner_radius=10, width=120)
     cpu_temp_entry.insert(0, str(settings.get("cpu-max-temperature", 85)))
-    cpu_temp_entry.pack(fill="x", padx=30)
+    cpu_temp_entry.pack(pady=(0, 10))
 
-    # 2. GPU Max Temp
-    gpu_temp_label = ctk.CTkLabel(root, text="GPU Max Temperature (°C):", anchor="w")
-    gpu_temp_label.pack(fill="x", padx=30, pady=(8, 2))
-    gpu_temp_entry = ctk.CTkEntry(root, placeholder_text="e.g. 80", corner_radius=10)
-    gpu_temp_entry.insert(0, str(settings.get("gpu-max-temperature", 80)))
-    gpu_temp_entry.pack(fill="x", padx=30)
-
-    # 3. CPU Max Usage
-    cpu_usage_label = ctk.CTkLabel(root, text="CPU Max Usage (%):", anchor="w")
-    cpu_usage_label.pack(fill="x", padx=30, pady=(8, 2))
-    cpu_usage_entry = ctk.CTkEntry(root, placeholder_text="e.g. 95", corner_radius=10)
+    cpu_usage_label = ctk.CTkLabel(cpu_frame, text="Max Usage Limit (%):")
+    cpu_usage_label.pack(pady=(5, 2))
+    cpu_usage_entry = ctk.CTkEntry(cpu_frame, placeholder_text="e.g. 95", corner_radius=10, width=120)
     cpu_usage_entry.insert(0, str(settings.get("cpu-max-usage", 95)))
-    cpu_usage_entry.pack(fill="x", padx=30)
+    cpu_usage_entry.pack(pady=(0, 15))
 
-    # 4. GPU Max Usage
-    gpu_usage_label = ctk.CTkLabel(root, text="GPU Max Usage (%):", anchor="w")
-    gpu_usage_label.pack(fill="x", padx=30, pady=(8, 2))
-    gpu_usage_entry = ctk.CTkEntry(root, placeholder_text="e.g. 100", corner_radius=10)
+    # Right Column: GPU Settings
+    gpu_frame = ctk.CTkFrame(columns_frame)
+    gpu_frame.pack(side="right", fill="both", expand=True, padx=(10, 0), pady=5)
+
+    gpu_header = ctk.CTkLabel(gpu_frame, text="GPU Settings", font=("Helvetica", 13, "bold"), text_color="#2ecc71")
+    gpu_header.pack(pady=(10, 5))
+
+    gpu_temp_label = ctk.CTkLabel(gpu_frame, text="Max Temp Limit (°C):")
+    gpu_temp_label.pack(pady=(5, 2))
+    gpu_temp_entry = ctk.CTkEntry(gpu_frame, placeholder_text="e.g. 80", corner_radius=10, width=120)
+    gpu_temp_entry.insert(0, str(settings.get("gpu-max-temperature", 80)))
+    gpu_temp_entry.pack(pady=(0, 10))
+
+    gpu_usage_label = ctk.CTkLabel(gpu_frame, text="Max Usage Limit (%):")
+    gpu_usage_label.pack(pady=(5, 2))
+    gpu_usage_entry = ctk.CTkEntry(gpu_frame, placeholder_text="e.g. 100", corner_radius=10, width=120)
     gpu_usage_entry.insert(0, str(settings.get("gpu-max-usage", 100)))
-    gpu_usage_entry.pack(fill="x", padx=30)
+    gpu_usage_entry.pack(pady=(0, 15))
 
     # 5. ntfy Topic
     ntfy_label = ctk.CTkLabel(root, text="ntfy.sh Topic Name (Mobile Alerts):", anchor="w")
-    ntfy_label.pack(fill="x", padx=30, pady=(8, 2))
+    ntfy_label.pack(fill="x", padx=30, pady=(5, 2))
     ntfy_entry = ctk.CTkEntry(root, placeholder_text="optional-topic-name", corner_radius=10)
     topic_val = settings.get("ntfy-topic", "")
     ntfy_entry.insert(0, "" if topic_val is None else str(topic_val))
@@ -111,7 +125,7 @@ def open_settings_window(diagnose_callback=None):
     # 6. Startup Configuration
     startup_var = ctk.StringVar(value="on" if check_startup_status() else "off")
     startup_checkbox = ctk.CTkCheckBox(root, text="Start with Windows (Administrator)", variable=startup_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
-    startup_checkbox.pack(fill="x", padx=30, pady=(15, 0))
+    startup_checkbox.pack(padx=30, pady=(10, 0), anchor="w")
 
     def save_action():
         try:
@@ -142,53 +156,53 @@ def open_settings_window(diagnose_callback=None):
         except ValueError:
             messagebox.showerror("Invalid Input", "Please enter valid numeric values for limits.")
 
+    # Action Buttons Row
     button_frame = ctk.CTkFrame(root, fg_color="transparent")
     button_frame.pack(fill="x", padx=30, pady=(15, 10))
 
-    save_btn = ctk.CTkButton(button_frame, text="Save", command=save_action, width=130, corner_radius=10)
+    save_btn = ctk.CTkButton(button_frame, text="Save Settings", command=save_action, width=125, corner_radius=10)
     save_btn.pack(side="left", padx=(0, 10))
 
-    cancel_btn = ctk.CTkButton(button_frame, text="Cancel", fg_color="#34495e", hover_color="#2c3e50", command=root.destroy, width=130, corner_radius=10)
-    cancel_btn.pack(side="right")
+    cancel_btn = ctk.CTkButton(button_frame, text="Cancel", fg_color="#34495e", hover_color="#2c3e50", command=root.destroy, width=125, corner_radius=10)
+    cancel_btn.pack(side="left", padx=(0, 10))
+
     if diagnose_callback is not None:
         def run_diagnose():
             report = diagnose_callback()
             messagebox.showinfo("Thermal Health Report", report)
             
         diagnose_btn = ctk.CTkButton(
-            root, 
-            text="🔍 Check Thermal Health", 
+            button_frame, 
+            text="🔍 Diagnostics", 
             command=run_diagnose, 
             fg_color="#2ecc71", 
             hover_color="#27ae60", 
-            corner_radius=10
+            corner_radius=10,
+            width=125
         )
-        diagnose_btn.pack(pady=(5, 10))
+        diagnose_btn.pack(side="left")
 
-    # 💡 CPU N/A Troubleshooting Info
-    info_text = (
-        "💡 CPU N/A Troubleshooting:\n"
-        "1. Always run the program 'As Administrator'.\n"
-        "2. If CPU temperature is still not showing on AMD Ryzen,\n"
-        "   click the button below to install the PawnIO driver."
-    )
-    info_label = ctk.CTkLabel(root, text=info_text, font=("Helvetica", 10), text_color="#bdc3c7", justify="left")
-    info_label.pack(pady=(10, 10))
+    # Bottom frame for troubleshooting info
+    trouble_frame = ctk.CTkFrame(root)
+    trouble_frame.pack(fill="x", padx=20, pady=(10, 15))
+
+    info_label = ctk.CTkLabel(trouble_frame, text="💡 CPU N/A on AMD Ryzen? Run as Admin and install PawnIO driver.", font=("Helvetica", 9), text_color="#bdc3c7")
+    info_label.pack(side="left", padx=10, pady=8)
 
     import webbrowser
     def open_pawnio():
         webbrowser.open("https://pawnio.eu/")
 
-    pawnio_btn = ctk.CTkButton(root, text="Download PawnIO Driver", command=open_pawnio, fg_color="#e67e22", hover_color="#d35400", corner_radius=10)
-    pawnio_btn.pack(pady=(0, 15))
+    pawnio_btn = ctk.CTkButton(trouble_frame, text="Get PawnIO", command=open_pawnio, fg_color="#e67e22", hover_color="#d35400", corner_radius=8, width=95)
+    pawnio_btn.pack(side="right", padx=10, pady=8)
 
     root.mainloop()
 
 class TemperatureWidget:
-    def __init__(self, get_temp_callback, on_close_callback=None):
+    def __init__(self, get_stats_callback, on_close_callback=None):
         settings = load_settings()
         self.current_theme = settings.get("widget-theme", "dark")
-        self.get_temp_callback = get_temp_callback
+        self.get_stats_callback = get_stats_callback
         self.on_close_callback = on_close_callback
         self.should_close = False
         self.root = ctk.CTk()
@@ -208,7 +222,7 @@ class TemperatureWidget:
         settings = load_settings()
         x = settings.get("widget-x", 100)
         y = settings.get("widget-y", 100)
-        self.root.geometry(f"240x60+{x}+{y}")
+        self.root.geometry(f"270x80+{x}+{y}")
         
         # Styled container frame
         self.frame = ctk.CTkFrame(
@@ -221,29 +235,42 @@ class TemperatureWidget:
         self.frame.pack(fill="both", expand=True)
 
         def toggle_theme():
-            #change the theme
-            self.current_theme = "light" if self.current_theme== "dark" else "dark"
+            # change the theme
+            self.current_theme = "light" if self.current_theme == "dark" else "dark"
 
-            #save the config file
-            settings= load_settings()
-            settings["widget-theme"]=self.current_theme
+            # save the config file
+            settings = load_settings()
+            settings["widget-theme"] = self.current_theme
             save_settings(settings)
             
-            #update the widget theme
+            # update the widget theme
             self.apply_theme()
 
         self.toggle_theme = toggle_theme
 
+        # CPU Info Container
+        self.cpu_frame = ctk.CTkFrame(self.frame, fg_color="transparent")
+        self.cpu_frame.pack(side="left", padx=(15, 0), fill="both", expand=True)
         
-        
-        # CPU Label
-        self.cpu_title_label = ctk.CTkLabel(
-            self.frame,
-            text="CPU: --°C",
-            font=("Helvetica", 12, "bold"),
-            text_color="#cdd6f4"
+        self.cpu_temp_label = ctk.CTkLabel(
+            self.cpu_frame,
+            text="CPU: --°C (--%)",
+            font=("Helvetica", 11, "bold"),
+            text_color="#cdd6f4",
+            anchor="w"
         )
-        self.cpu_title_label.pack(side="left", padx=(15, 0))
+        self.cpu_temp_label.pack(side="top", fill="x", pady=(15, 0))
+        
+        self.cpu_fan_label = ctk.CTkLabel(
+            self.cpu_frame,
+            text="Fan: -- RPM",
+            font=("Helvetica", 9),
+            text_color="#a6adc8",
+            anchor="w"
+        )
+        self.cpu_fan_label.pack(side="top", fill="x")
+
+        # Theme Toggle in the middle
         self.theme_btn = ctk.CTkButton(
             self.frame,
             text="☀" if self.current_theme == "dark" else "🌙",
@@ -255,33 +282,38 @@ class TemperatureWidget:
             text_color="#cdd6f4",
             command=self.toggle_theme
         )
-        self.theme_btn.pack(side="left", expand=True)
-        self.gpu_title_label = ctk.CTkLabel(
-            self.frame,
-            text="GPU: --°C",
-            font=("Helvetica", 12, "bold"),
-            text_color="#cdd6f4"
-        )
-        self.gpu_title_label.pack(side="right", padx=(0, 15))
-        
-        # Listeners
-        self.frame.bind("<Button-1>", self.start_drag)
-        self.frame.bind("<B1-Motion>", self.do_drag)
-        self.frame.bind("<ButtonRelease-1>", self.stop_drag)
-        
-        self.cpu_title_label.bind("<Button-1>", self.start_drag)
-        self.cpu_title_label.bind("<B1-Motion>", self.do_drag)
-        self.cpu_title_label.bind("<ButtonRelease-1>", self.stop_drag)
-        
-        self.gpu_title_label.bind("<Button-1>", self.start_drag)
-        self.gpu_title_label.bind("<B1-Motion>", self.do_drag)
-        self.gpu_title_label.bind("<ButtonRelease-1>", self.stop_drag)
-        
-        # Double Click Close Listener
-        self.frame.bind("<Double-Button-1>", self.close_widget)
-        self.cpu_title_label.bind("<Double-Button-1>", self.close_widget)
-        self.gpu_title_label.bind("<Double-Button-1>", self.close_widget)
+        self.theme_btn.pack(side="left", expand=True, pady=15)
 
+        # GPU Info Container
+        self.gpu_frame = ctk.CTkFrame(self.frame, fg_color="transparent")
+        self.gpu_frame.pack(side="right", padx=(0, 15), fill="both", expand=True)
+        
+        self.gpu_temp_label = ctk.CTkLabel(
+            self.gpu_frame,
+            text="GPU: --°C (--%)",
+            font=("Helvetica", 11, "bold"),
+            text_color="#cdd6f4",
+            anchor="e"
+        )
+        self.gpu_temp_label.pack(side="top", fill="x", pady=(15, 0))
+        
+        self.gpu_fan_label = ctk.CTkLabel(
+            self.gpu_frame,
+            text="Fan: -- RPM",
+            font=("Helvetica", 9),
+            text_color="#a6adc8",
+            anchor="e"
+        )
+        self.gpu_fan_label.pack(side="top", fill="x")
+        
+        # Bind dragging & closing events to all widget parts
+        for widget in (self.frame, self.cpu_frame, self.cpu_temp_label, self.cpu_fan_label,
+                       self.gpu_frame, self.gpu_temp_label, self.gpu_fan_label):
+            widget.bind("<Button-1>", self.start_drag)
+            widget.bind("<B1-Motion>", self.do_drag)
+            widget.bind("<ButtonRelease-1>", self.stop_drag)
+            widget.bind("<Double-Button-1>", self.close_widget)
+        
         self.drag_data = {"x": 0, "y": 0}
         self.apply_theme()
         self.update_loop()
@@ -293,6 +325,7 @@ class TemperatureWidget:
             btn_hover = "#2a2b3c"
             btn_text = "#cdd6f4"
             label_text = "#cdd6f4"
+            sub_label_text = "#a6adc8"
             self.theme_btn.configure(text="☀", text_color=btn_text, hover_color=btn_hover)
         else:
             frame_bg = "#eff1f5"
@@ -300,11 +333,14 @@ class TemperatureWidget:
             btn_hover = "#e6e9ef"
             btn_text = "#4c4f69"
             label_text = "#4c4f69"
+            sub_label_text = "#6c6f85"
             self.theme_btn.configure(text="🌙", text_color=btn_text, hover_color=btn_hover)
             
         self.frame.configure(fg_color=frame_bg, border_color=border_color)
-        self.cpu_title_label.configure(text_color=label_text)
-        self.gpu_title_label.configure(text_color=label_text)
+        self.cpu_temp_label.configure(text_color=label_text)
+        self.gpu_temp_label.configure(text_color=label_text)
+        self.cpu_fan_label.configure(text_color=sub_label_text)
+        self.gpu_fan_label.configure(text_color=sub_label_text)
 
     def start_drag(self, event):
         self.drag_data["x"] = event.x
@@ -338,10 +374,13 @@ class TemperatureWidget:
             return
             
         try:
-            cpu, gpu = self.get_temp_callback()
+            cpu_temp, gpu_temp, cpu_usage, gpu_usage, cpu_fan, gpu_fan = self.get_stats_callback()
             
-            cpu_text = f"{cpu:.1f}°C" if cpu > 0.0 else "N/A"
-            gpu_text = f"{gpu:.1f}°C" if gpu > 0.0 else "N/A"
+            cpu_temp_text = f"{cpu_temp:.1f}°C" if cpu_temp > 0.0 else "N/A"
+            gpu_temp_text = f"{gpu_temp:.1f}°C" if gpu_temp > 0.0 else "N/A"
+            
+            cpu_fan_text = f"{cpu_fan:.0f} RPM" if cpu_fan is not None else "N/A"
+            gpu_fan_text = f"{gpu_fan:.0f} RPM" if gpu_fan is not None else "N/A"
             
             settings = load_settings()
             cpu_limit = settings.get("cpu-max-temperature", 85)
@@ -357,13 +396,15 @@ class TemperatureWidget:
                 color_red = "#d20f39"
 
             color = color_green
-            if cpu >= (cpu_limit - 5) or gpu >= (gpu_limit - 5):
+            if cpu_temp >= (cpu_limit - 5) or gpu_temp >= (gpu_limit - 5):
                 color = color_yellow
-            if cpu >= cpu_limit or gpu >= gpu_limit:
+            if cpu_temp >= cpu_limit or gpu_temp >= gpu_limit:
                 color = color_red
                 
-            self.cpu_title_label.configure(text=f"CPU: {cpu_text}", text_color=color)
-            self.gpu_title_label.configure(text=f"GPU: {gpu_text}", text_color=color)
+            self.cpu_temp_label.configure(text=f"CPU: {cpu_temp_text} ({cpu_usage:.0f}%)", text_color=color)
+            self.gpu_temp_label.configure(text=f"GPU: {gpu_temp_text} ({gpu_usage:.0f}%)", text_color=color)
+            self.cpu_fan_label.configure(text=f"Fan: {cpu_fan_text}")
+            self.gpu_fan_label.configure(text=f"Fan: {gpu_fan_text}")
         except Exception as e:
             print(f"Widget update error: {e}")
             

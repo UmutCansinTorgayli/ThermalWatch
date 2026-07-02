@@ -35,7 +35,14 @@ def run_widget_thread():
             threading.Thread(target=lambda: update_menu(global_icon), daemon=True).start()
             
     widget_instance = TemperatureWidget(
-        get_temp_callback=lambda: (current_cpu_temp, current_gpu_temp),
+        get_stats_callback=lambda: (
+            current_cpu_temp,
+            current_gpu_temp,
+            current_cpu_usage,
+            current_gpu_usage,
+            current_cpu_fan,
+            current_gpu_fan
+        ),
         on_close_callback=on_close
     )
     widget_instance.start()
