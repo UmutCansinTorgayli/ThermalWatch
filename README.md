@@ -93,6 +93,26 @@ We took that discovery and built it directly into ThermalWatch:
   <img src="assets/widget_light.png" alt="Desktop Widget Light Mode" width="280">
 </p>
 
+### 🟢 Dynamic Tray Icon Color States
+
+ThermalWatch features a minimalist, dynamic system tray icon that visually communicates your hardware's current thermal state without opening any windows:
+
+- **🟢 Green Icon:** Everything is normal. Both CPU and GPU temperatures are well within safe bounds.
+- **🟡 Yellow Icon:** Warning zone. CPU or GPU has climbed to within **5°C** of your defined limits.
+- **🔴 Red Icon:** Critical threshold breached. CPU or GPU is at or above your limit, triggering local and remote push alerts.
+
+<p align="center">
+  <img src="assets/tray_icon_green.png" alt="Green Tray Icon" width="28">
+</p>
+
+### 🔔 Native Windows Toast Alerts
+
+The moment a threshold is crossed, a native Windows toast notification is pushed instantly:
+
+<p align="center">
+  <img src="assets/notification.png" alt="Windows Toast Notification Alert" width="450">
+</p>
+
 ### ⚙️ Settings Panel (Tabs Overview)
 
 | Limits & Widget Configuration | Live Telemetry & Fan Speed |
