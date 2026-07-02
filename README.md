@@ -185,7 +185,7 @@ Since ThermalWatch is fully open source, you're welcome — and encouraged — t
 
 ## 📜 Release History
 
-### v1.4.0 — The Layout & Usability Update (Current)
+### v1.3.0 — The Layout & Usability Update (Current)
 - 📐 **Responsive Geometry Layout**: Restructured Tkinter pack layout sequence. Bottom settings buttons ("Save Settings", "Cancel", "Diagnostics") are now firmly locked to the bottom (`side="bottom"`) and the tabview dynamically occupies the middle space, preventing any clipping under high OS scaling rates.
 - ⬜ **Tabview Checkbox Spacing**: Increased settings window geometry to `460x560` and `tabview` height to `370` to prevent vertical checkboxes from getting clipped or cut off by the tab container boundaries.
 - 🤖 **Gemini 2.5 Flash Update**: Updated the deprecated Gemini 1.5 Flash model API query string to the stable Gemini 2.5 Flash endpoint.
@@ -193,7 +193,7 @@ Since ThermalWatch is fully open source, you're welcome — and encouraged — t
 - 🔄 **Ollama Background Auto-Start**: Automatically start the Ollama background service if installed but not running during diagnostics health check requests.
 - 🔍 **Gemini Detailed Error Handlers**: Exposed the detailed Google API error messages directly in the diagnostics popup for easier key validation.
 
-### v1.3.0 — The Performance, Security, Assets & Polish Update
+### v1.2.0 — The Performance, Security, Assets & Polish Update
 - 🎨 **Widget Theme Toggle**: Switch between Dark and Light mode on the fly with a dedicated button on the desktop widget.
 - 🌀 **Fan & Load Monitoring**: Added real-time tracking for CPU/GPU usage percentages and fan/pump RPMs, using recursive motherboard SuperI/O scanning.
 - 🍃 **Lazy-Loaded GUI & Optimization**: Drastically reduced tray-only RAM usage to ~95-130MB by deferring GUI framework loading.
