@@ -175,10 +175,16 @@ def monitor_loop(icon):
 
             now = time.time()
 
+            lang = settings.get("language", "English")
+
             if current_cpu_temp >= cpu_limit:
                 if (now - last_cpu_alert_time) > ALERT_COOLDOWN:
-                    title = "🔥 High CPU Temperature!"
-                    msg = f"CPU has reached {current_cpu_temp:.1f}°C (Limit: {cpu_limit}°C)"
+                    if lang == "Turkish":
+                        title = "🔥 Yüksek CPU Sıcaklığı!"
+                        msg = f"İşlemci (CPU) {current_cpu_temp:.1f}°C sıcaklığa ulaştı (Limit: {cpu_limit}°C)"
+                    else:
+                        title = "🔥 High CPU Temperature!"
+                        msg = f"CPU has reached {current_cpu_temp:.1f}°C (Limit: {cpu_limit}°C)"
                     send_windows_notification(title, msg)
                     send_mobile_notification(ntfy_topic, title, msg)
                     last_cpu_alert_time = now
@@ -186,10 +192,15 @@ def monitor_loop(icon):
             if current_gpu_temp >= gpu_limit:
                 if (now - last_gpu_alert_time) > ALERT_COOLDOWN:
                     time.sleep(1)
-                    title = "🔥 High GPU Temperature!"
-                    msg = f"GPU has reached {current_gpu_temp:.1f}°C (Limit: {gpu_limit}°C)"
+                    if lang == "Turkish":
+                        title = "🔥 Yüksek GPU Sıcaklığı!"
+                        msg = f"Ekran Kartı (GPU) {current_gpu_temp:.1f}°C sıcaklığa ulaştı (Limit: {gpu_limit}°C)"
+                    else:
+                        title = "🔥 High GPU Temperature!"
+                        msg = f"GPU has reached {current_gpu_temp:.1f}°C (Limit: {gpu_limit}°C)"
                     send_windows_notification(title, msg)
                     send_mobile_notification(ntfy_topic, title, msg)
+                    last_gpu_alert_time = now
             import gc
             gc.collect()
         except Exception as e:
