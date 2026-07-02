@@ -30,7 +30,6 @@ Built by people who got burned (pun intended) by a real AMD Ryzen thermal-report
 - 📊 **Local Offline "Thermal Health Advisor"** — Analyzes a rolling 10-minute history of loads and temperatures to diagnose potential hardware issues (e.g. flagging dry thermal paste or loose mounts if the CPU runs hot at low load).
 - 🎨 **Draggable Desktop Widget & Custom Theme Toggle** — A sleek, frameless, semi-transparent overlay widget with a centered dark/light mode toggle. Handled with a custom `magenta` transparency color key to ensure anti-aliased pixel-perfect rounded corners.
 - ⚡ **Auto-Start on Boot (Admin-Safe)** — Integrates directly with **Windows Task Scheduler** to launch silently at startup with the highest privileges, without triggering a UAC prompt every single boot.
-- 🌐 **Multi-Language Support (Turkish & English)** — Full application and AI Advisor localization. The user interface labels, helper sections, settings controls, and AI-generated thermal health diagnosis will adapt instantly based on your language preference.
 - 🛠️ **Built-in AMD Ryzen Fix** — A dedicated one-click **"Download PawnIO Driver"** button in Settings, because AMD Ryzen sensor access requires a modern, Core-Isolation-compatible kernel driver.
 - 🍃 **Resource Efficient & Optimized** — Uses lazy-loading of UI libraries (`customtkinter`/`tkinter`) to consume less than **95-130MB RAM** in tray-only mode, with periodic garbage collection triggers and `<0.35% CPU` overhead.
 
@@ -181,16 +180,18 @@ Since ThermalWatch is fully open source, you're welcome — and encouraged — t
 | ntfy Topic | Your personal ntfy.sh push channel | *(empty)* |
 | Start with Windows | Enables silent, elevated auto-start via Task Scheduler | `Off` |
 | Notification Delay | Anti-spam buffer between consecutive alerts | `1s` |
-| App & AI Language | Dynamic interface and AI diagnostics advisor report language (English/Turkish) | `English` |
 
 ---
 
 ## 📜 Release History
 
-### v1.4.0 — The Localization, Layout & Usability Update (Current)
-- 🌐 **App & AI Language Localization**: Added full English and Turkish support. Switching the language immediately translates all settings controls, tabs, help desks, message boxes, and the AI Advisor diagnostics reports.
-- 📐 **Responsive Layout & Layout Fixes**: Restructured Tkinter pack geometry hierarchy. Action buttons ("Save Settings", "Cancel", "Diagnostics") are now locked to the bottom (`side="bottom"`) and the middle tabview dynamically fills the remaining space. This completely prevents buttons and checkboxes from getting clipped or pushed off-screen due to OS scaling.
-- 🔔 **Localized Toast Notifications**: System warning notifications and mobile push alerts now adapt and trigger in the user's selected language.
+### v1.4.0 — The Layout & Usability Update (Current)
+- 📐 **Responsive Geometry Layout**: Restructured Tkinter pack layout sequence. Bottom settings buttons ("Save Settings", "Cancel", "Diagnostics") are now firmly locked to the bottom (`side="bottom"`) and the tabview dynamically occupies the middle space, preventing any clipping under high OS scaling rates.
+- ⬜ **Tabview Checkbox Spacing**: Increased settings window geometry to `460x560` and `tabview` height to `370` to prevent vertical checkboxes from getting clipped or cut off by the tab container boundaries.
+- 🤖 **Gemini 2.5 Flash Update**: Updated the deprecated Gemini 1.5 Flash model API query string to the stable Gemini 2.5 Flash endpoint.
+- 🔒 **Ollama Silent Launch**: Configured Ollama to launch completely silently without displaying an empty CMD window on startup from the GUI settings panel.
+- 🔄 **Ollama Background Auto-Start**: Automatically start the Ollama background service if installed but not running during diagnostics health check requests.
+- 🔍 **Gemini Detailed Error Handlers**: Exposed the detailed Google API error messages directly in the diagnostics popup for easier key validation.
 
 ### v1.3.0 — The Performance, Security, Assets & Polish Update
 - 🎨 **Widget Theme Toggle**: Switch between Dark and Light mode on the fly with a dedicated button on the desktop widget.
