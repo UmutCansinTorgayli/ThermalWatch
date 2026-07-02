@@ -276,11 +276,14 @@ def diagnose_system():
         if not api_key:
             return f"⚠️ Gemini API key is missing. Paste your key in Settings -> AI Advisor.\n\nFallback Report:\n\n{rule_report}"
 
+        lang = settings.get("language", "English")
+        lang_instruction = "in Turkish" if lang == "Turkish" else "in English"
+
         prompt = (
             f"Analyze this rolling 10-minute sensor telemetry:\n"
             f"{telemetry}\n\n"
             f"Rule-based diagnostic flags: {diagnostics if diagnostics else 'No issues detected.'}\n\n"
-            f"You are a professional PC hardware thermal and performance analyst. Give a friendly, extremely concise (max 3 sentences) diagnostics report in Turkish. Suggest recommendations only if there are anomalies."
+            f"You are a professional PC hardware thermal and performance analyst. Give a friendly, extremely concise (max 3 sentences) diagnostics report {lang_instruction}. Suggest recommendations only if there are anomalies."
         )
 
         try:
@@ -328,10 +331,13 @@ def diagnose_system():
                 f"Diagnose if the temperatures and fan speeds are normal for these usage loads. Suggest recommendations only if there are anomalies."
             )
             
+            lang = settings.get("language", "English")
+            lang_instruction = "Answer in Turkish." if lang == "Turkish" else "Answer in English."
+
             payload = {
                 "model": selected_model,
                 "messages": [
-                    {"role": "system", "content": "You are a professional PC hardware thermal and performance analyst. Give a friendly, extremely concise (max 3 sentences) diagnostics report. Answer in Turkish."},
+                    {"role": "system", "content": f"You are a professional PC hardware thermal and performance analyst. Give a friendly, extremely concise (max 3 sentences) diagnostics report. {lang_instruction}"},
                     {"role": "user", "content": prompt}
                 ],
                 "stream": False

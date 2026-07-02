@@ -13,6 +13,9 @@ DEFAULT_SETTINGS = {
     "widget-x": 100,
     "widget-y": 100,
     "widget-theme": "dark",
+    "ai-engine": "none",
+    "gemini-api-key": "",
+    "language": "English"
 }
 
 def load_settings():

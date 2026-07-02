@@ -136,6 +136,17 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
     ntfy_entry.insert(0, "" if topic_val is None else str(topic_val))
     ntfy_entry.pack(fill="x", padx=15)
 
+    # Language Selection Row
+    lang_frame = ctk.CTkFrame(limits_tab, fg_color="transparent")
+    lang_frame.pack(fill="x", padx=15, pady=(8, 0))
+
+    lang_label = ctk.CTkLabel(lang_frame, text="App & AI Language:", font=("Helvetica", 11, "bold"))
+    lang_label.pack(side="left", padx=(0, 10))
+
+    lang_var = ctk.StringVar(value=settings.get("language", "English"))
+    lang_menu = ctk.CTkOptionMenu(lang_frame, values=["English", "Turkish"], variable=lang_var, width=120, height=26, corner_radius=6)
+    lang_menu.pack(side="left")
+
     # Startup & Widget Options Checkboxes
     options_frame = ctk.CTkFrame(limits_tab, fg_color="transparent")
     options_frame.pack(fill="x", padx=15, pady=(15, 0))
@@ -590,7 +601,8 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
                 "widget-show-usage": show_usage_var.get() == "on",
                 "widget-show-fans": show_fans_var.get() == "on",
                 "ai-engine": selected_engine,
-                "gemini-api-key": gemini_key_entry.get().strip()
+                "gemini-api-key": gemini_key_entry.get().strip(),
+                "language": lang_var.get()
             }
 
             if (
