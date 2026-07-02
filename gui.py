@@ -246,7 +246,7 @@ class TemperatureWidget:
         self.cpu_title_label.pack(side="left", padx=(15, 0))
         self.theme_btn = ctk.CTkButton(
             self.frame,
-            text="☀️" if self.current_theme == "dark" else "🌙",
+            text="☀" if self.current_theme == "dark" else "🌙",
             width=30,
             height=30,
             corner_radius=8,
@@ -293,7 +293,7 @@ class TemperatureWidget:
             btn_hover = "#2a2b3c"
             btn_text = "#cdd6f4"
             label_text = "#cdd6f4"
-            self.theme_btn.configure(text="☀️", text_color=btn_text, hover_color=btn_hover)
+            self.theme_btn.configure(text="☀", text_color=btn_text, hover_color=btn_hover)
         else:
             frame_bg = "#eff1f5"
             border_color = "#ccd0da"
