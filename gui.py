@@ -65,7 +65,7 @@ def open_settings_window(diagnose_callback=None):
 
     root = ctk.CTk()
     root.title("ThermalWatch - Settings")
-    root.geometry("460x500")
+    root.geometry("460x520")
     root.resizable(False, False)
 
     # Header
@@ -145,6 +145,9 @@ def open_settings_window(diagnose_callback=None):
     use_ollama_var = ctk.StringVar(value="on" if settings.get("use-local-ollama", False) else "off")
     use_ollama_checkbox = ctk.CTkCheckBox(options_frame2, text="Enable Local Ollama AI Diagnostics", variable=use_ollama_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
     use_ollama_checkbox.pack(side="left")
+
+    ollama_info_label = ctk.CTkLabel(root, text="💡 Requires Ollama (ollama.com) running locally with at least one model.", font=("Helvetica", 9), text_color="#bdc3c7", anchor="w")
+    ollama_info_label.pack(fill="x", padx=30, pady=(2, 0))
 
     def save_action():
         try:
