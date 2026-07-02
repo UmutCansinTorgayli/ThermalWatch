@@ -30,6 +30,7 @@ Built by people who got burned (pun intended) by a real AMD Ryzen thermal-report
 - 📊 **Local Offline "Thermal Health Advisor"** — Analyzes a rolling 10-minute history of loads and temperatures to diagnose potential hardware issues (e.g. flagging dry thermal paste or loose mounts if the CPU runs hot at low load).
 - 🎨 **Draggable Desktop Widget & Custom Theme Toggle** — A sleek, frameless, semi-transparent overlay widget with a centered dark/light mode toggle. Handled with a custom `magenta` transparency color key to ensure anti-aliased pixel-perfect rounded corners.
 - ⚡ **Auto-Start on Boot (Admin-Safe)** — Integrates directly with **Windows Task Scheduler** to launch silently at startup with the highest privileges, without triggering a UAC prompt every single boot.
+- 🌐 **Multi-Language Support (Turkish & English)** — Full application and AI Advisor localization. The user interface labels, helper sections, settings controls, and AI-generated thermal health diagnosis will adapt instantly based on your language preference.
 - 🛠️ **Built-in AMD Ryzen Fix** — A dedicated one-click **"Download PawnIO Driver"** button in Settings, because AMD Ryzen sensor access requires a modern, Core-Isolation-compatible kernel driver.
 - 🍃 **Resource Efficient & Optimized** — Uses lazy-loading of UI libraries (`customtkinter`/`tkinter`) to consume less than **95-130MB RAM** in tray-only mode, with periodic garbage collection triggers and `<0.35% CPU` overhead.
 
@@ -180,12 +181,18 @@ Since ThermalWatch is fully open source, you're welcome — and encouraged — t
 | ntfy Topic | Your personal ntfy.sh push channel | *(empty)* |
 | Start with Windows | Enables silent, elevated auto-start via Task Scheduler | `Off` |
 | Notification Delay | Anti-spam buffer between consecutive alerts | `1s` |
+| App & AI Language | Dynamic interface and AI diagnostics advisor report language (English/Turkish) | `English` |
 
 ---
 
 ## 📜 Release History
 
-### v1.3.0 — The Performance, Security, Assets & Polish Update (Current)
+### v1.4.0 — The Localization, Layout & Usability Update (Current)
+- 🌐 **App & AI Language Localization**: Added full English and Turkish support. Switching the language immediately translates all settings controls, tabs, help desks, message boxes, and the AI Advisor diagnostics reports.
+- 📐 **Responsive Layout & Layout Fixes**: Restructured Tkinter pack geometry hierarchy. Action buttons ("Save Settings", "Cancel", "Diagnostics") are now locked to the bottom (`side="bottom"`) and the middle tabview dynamically fills the remaining space. This completely prevents buttons and checkboxes from getting clipped or pushed off-screen due to OS scaling.
+- 🔔 **Localized Toast Notifications**: System warning notifications and mobile push alerts now adapt and trigger in the user's selected language.
+
+### v1.3.0 — The Performance, Security, Assets & Polish Update
 - 🎨 **Widget Theme Toggle**: Switch between Dark and Light mode on the fly with a dedicated button on the desktop widget.
 - 🌀 **Fan & Load Monitoring**: Added real-time tracking for CPU/GPU usage percentages and fan/pump RPMs, using recursive motherboard SuperI/O scanning.
 - 🍃 **Lazy-Loaded GUI & Optimization**: Drastically reduced tray-only RAM usage to ~95-130MB by deferring GUI framework loading.
