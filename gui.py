@@ -74,7 +74,6 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
 
     # 🗂️ CTkTabview Setup
     tabview = ctk.CTkTabview(root, width=420, height=350, corner_radius=12)
-    tabview.pack(padx=20, pady=(0, 10), fill="both", expand=True)
 
     tabview.add("Limits & Widget")
     tabview.add("Telemetry")
@@ -626,7 +625,10 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
 
     # Action Buttons Row (At the bottom of the window, outside the tabview)
     button_frame = ctk.CTkFrame(root, fg_color="transparent")
-    button_frame.pack(fill="x", padx=30, pady=(5, 15))
+    button_frame.pack(side="bottom", fill="x", padx=30, pady=(5, 15))
+
+    # Pack tabview to fill the remaining middle space
+    tabview.pack(side="top", padx=20, pady=(0, 10), fill="both", expand=True)
 
     save_btn = ctk.CTkButton(button_frame, text="Save Settings", command=save_action, width=125, height=35, font=("Helvetica", 11, "bold"), corner_radius=10)
     save_btn.pack(side="left", padx=(0, 10))
