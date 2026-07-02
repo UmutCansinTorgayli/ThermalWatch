@@ -101,10 +101,6 @@ ThermalWatch features a minimalist, dynamic system tray icon that visually commu
 - **🟡 Yellow Icon:** Warning zone. CPU or GPU has climbed to within **5°C** of your defined limits.
 - **🔴 Red Icon:** Critical threshold breached. CPU or GPU is at or above your limit, triggering local and remote push alerts.
 
-<p align="center">
-  <img src="assets/tray_icon_green.png" alt="Green Tray Icon" width="28">
-</p>
-
 ### 🔔 Native Windows Toast Alerts
 
 The moment a threshold is crossed, a native Windows toast notification is pushed instantly:
