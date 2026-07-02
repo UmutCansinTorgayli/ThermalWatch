@@ -65,7 +65,7 @@ def open_settings_window(diagnose_callback=None):
 
     root = ctk.CTk()
     root.title("ThermalWatch - Settings")
-    root.geometry("460x520")
+    root.geometry("460x570")
     root.resizable(False, False)
 
     # Header
