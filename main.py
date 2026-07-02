@@ -301,10 +301,14 @@ def diagnose_system():
                 res_data = response.json()
                 ai_content = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
                 return f"🤖 [Gemini AI Health Report]\n\n{ai_content}"
-            elif response.status_code in [400, 403, 404]:
-                return f"⚠️ Gemini API Error (Status {response.status_code}).\nMake sure your API key is a valid Google AI Studio key (starts with 'AIzaSy').\n\nFallback Report:\n\n{rule_report}"
             else:
-                return f"⚠️ Gemini API Error (Status {response.status_code}). Fallback Report:\n\n{rule_report}"
+                err_msg = "Unknown error"
+                try:
+                    res_json = response.json()
+                    err_msg = res_json.get("error", {}).get("message", "Unknown error")
+                except Exception:
+                    pass
+                return f"⚠️ Gemini API Error (Status {response.status_code}):\n{err_msg}\n\nFallback Report:\n\n{rule_report}"
         except Exception as e:
             return f"⚠️ Could not connect to Gemini API. Check your internet connection.\n\nFallback Report:\n\n{rule_report}"
 
