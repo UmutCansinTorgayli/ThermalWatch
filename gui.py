@@ -543,11 +543,17 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
                 # 3. If installed but NOT running, try starting it
                 if not is_running and is_installed:
                     lbl.configure(text="🔄 Starting Ollama service...", text_color="#e67e22")
+                    
+                    # On Windows, hide startup window
+                    si = subprocess.STARTUPINFO()
+                    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    si.wShowWindow = 0 # SW_HIDE
+                    
                     if os.path.exists(ollama_bin):
-                        subprocess.Popen([ollama_bin], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        subprocess.Popen([ollama_bin], startupinfo=si, creationflags=subprocess.CREATE_NO_WINDOW, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     else:
                         resolved_bin = shutil.which("ollama.exe") or "ollama"
-                        subprocess.Popen([resolved_bin], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        subprocess.Popen([resolved_bin], startupinfo=si, creationflags=subprocess.CREATE_NO_WINDOW, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     time.sleep(4)
 
                     # Re-verify if started and check model again
