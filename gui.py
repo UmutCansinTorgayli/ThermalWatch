@@ -59,13 +59,13 @@ def set_startup_status(enable):
     except Exception:
         return False
 
-def open_settings_window():
+def open_settings_window(diagnose_callback=None):
     """Opens the modern CustomTkinter settings window."""
     settings = load_settings()
 
     root = ctk.CTk()
     root.title("ThermalWatch - Settings")
-    root.geometry("340x600")
+    root.geometry("340x640")
     root.resizable(False, False)
 
     # Header
@@ -136,6 +136,7 @@ def open_settings_window():
                 set_startup_status(startup_var.get() == "on")
                 messagebox.showinfo("Success", "Settings have been saved successfully!")
                 root.destroy()
+                import gc; gc.collect()
             else:
                 messagebox.showerror("Error", "Could not save settings.")
         except ValueError:
@@ -149,6 +150,20 @@ def open_settings_window():
 
     cancel_btn = ctk.CTkButton(button_frame, text="Cancel", fg_color="#34495e", hover_color="#2c3e50", command=root.destroy, width=130, corner_radius=10)
     cancel_btn.pack(side="right")
+    if diagnose_callback is not None:
+        def run_diagnose():
+            report = diagnose_callback()
+            messagebox.showinfo("Thermal Health Report", report)
+            
+        diagnose_btn = ctk.CTkButton(
+            root, 
+            text="🔍 Check Thermal Health", 
+            command=run_diagnose, 
+            fg_color="#2ecc71", 
+            hover_color="#27ae60", 
+            corner_radius=10
+        )
+        diagnose_btn.pack(pady=(5, 10))
 
     # 💡 CPU N/A Troubleshooting Info
     info_text = (
@@ -171,24 +186,25 @@ def open_settings_window():
 
 class TemperatureWidget:
     def __init__(self, get_temp_callback, on_close_callback=None):
+        settings = load_settings()
+        self.current_theme = settings.get("widget-theme", "dark")
         self.get_temp_callback = get_temp_callback
         self.on_close_callback = on_close_callback
         self.should_close = False
         self.root = ctk.CTk()
         self.root.title("ThermalWatch Widget")
-        
+
         # Frameless and always on top
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
         self.root.attributes("-alpha", 0.85)
         
         # Transparent background for rounded corners on Windows
-        self.root.config(bg="black")
+        self.root.configure(fg_color="magenta")
         try:
-            self.root.wm_attributes("-transparentcolor", "black")
+            self.root.wm_attributes("-transparentcolor", "magenta")
         except Exception:
             pass
-            
         settings = load_settings()
         x = settings.get("widget-x", 100)
         y = settings.get("widget-y", 100)
@@ -203,6 +219,22 @@ class TemperatureWidget:
             border_color="#313244"
         )
         self.frame.pack(fill="both", expand=True)
+
+        def toggle_theme():
+            #change the theme
+            self.current_theme = "light" if self.current_theme== "dark" else "dark"
+
+            #save the config file
+            settings= load_settings()
+            settings["widget-theme"]=self.current_theme
+            save_settings(settings)
+            
+            #update the widget theme
+            self.apply_theme()
+
+        self.toggle_theme = toggle_theme
+
+        
         
         # CPU Label
         self.cpu_title_label = ctk.CTkLabel(
@@ -211,16 +243,26 @@ class TemperatureWidget:
             font=("Helvetica", 12, "bold"),
             text_color="#cdd6f4"
         )
-        self.cpu_title_label.pack(side="left", fill="both", expand=True, padx=15, pady=5)
-        
-        # GPU Label
+        self.cpu_title_label.pack(side="left", padx=(15, 0))
+        self.theme_btn = ctk.CTkButton(
+            self.frame,
+            text="☀️" if self.current_theme == "dark" else "🌙",
+            width=30,
+            height=30,
+            corner_radius=8,
+            fg_color="transparent",
+            hover_color="#2a2b3c",
+            text_color="#cdd6f4",
+            command=self.toggle_theme
+        )
+        self.theme_btn.pack(side="left", expand=True)
         self.gpu_title_label = ctk.CTkLabel(
             self.frame,
             text="GPU: --°C",
             font=("Helvetica", 12, "bold"),
             text_color="#cdd6f4"
         )
-        self.gpu_title_label.pack(side="right", fill="both", expand=True, padx=15, pady=5)
+        self.gpu_title_label.pack(side="right", padx=(0, 15))
         
         # Listeners
         self.frame.bind("<Button-1>", self.start_drag)
@@ -241,8 +283,29 @@ class TemperatureWidget:
         self.gpu_title_label.bind("<Double-Button-1>", self.close_widget)
 
         self.drag_data = {"x": 0, "y": 0}
+        self.apply_theme()
         self.update_loop()
         
+    def apply_theme(self):
+        if self.current_theme == "dark":
+            frame_bg = "#181825"
+            border_color = "#313244"
+            btn_hover = "#2a2b3c"
+            btn_text = "#cdd6f4"
+            label_text = "#cdd6f4"
+            self.theme_btn.configure(text="☀️", text_color=btn_text, hover_color=btn_hover)
+        else:
+            frame_bg = "#eff1f5"
+            border_color = "#ccd0da"
+            btn_hover = "#e6e9ef"
+            btn_text = "#4c4f69"
+            label_text = "#4c4f69"
+            self.theme_btn.configure(text="🌙", text_color=btn_text, hover_color=btn_hover)
+            
+        self.frame.configure(fg_color=frame_bg, border_color=border_color)
+        self.cpu_title_label.configure(text_color=label_text)
+        self.gpu_title_label.configure(text_color=label_text)
+
     def start_drag(self, event):
         self.drag_data["x"] = event.x
         self.drag_data["y"] = event.y
@@ -267,6 +330,7 @@ class TemperatureWidget:
         if self.on_close_callback:
             self.on_close_callback()
         self.root.destroy()
+        import gc; gc.collect()
 
     def update_loop(self):
         if self.should_close:
@@ -283,11 +347,20 @@ class TemperatureWidget:
             cpu_limit = settings.get("cpu-max-temperature", 85)
             gpu_limit = settings.get("gpu-max-temperature", 80)
             
-            color = "#a6e3a1" # Green
+            if self.current_theme == "dark":
+                color_green = "#a6e3a1"
+                color_yellow = "#f9e2af"
+                color_red = "#f38ba8"
+            else:
+                color_green = "#40a02b"
+                color_yellow = "#df8e1d"
+                color_red = "#d20f39"
+
+            color = color_green
             if cpu >= (cpu_limit - 5) or gpu >= (gpu_limit - 5):
-                color = "#f9e2af" # Yellow
+                color = color_yellow
             if cpu >= cpu_limit or gpu >= gpu_limit:
-                color = "#f38ba8" # Red
+                color = color_red
                 
             self.cpu_title_label.configure(text=f"CPU: {cpu_text}", text_color=color)
             self.gpu_title_label.configure(text=f"GPU: {gpu_text}", text_color=color)

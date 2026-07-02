@@ -12,6 +12,7 @@ DEFAULT_SETTINGS = {
     "widget-visible": False,
     "widget-x": 100,
     "widget-y": 100,
+    "widget-theme": "dark",
 }
 
 def load_settings():
@@ -35,6 +36,6 @@ def save_settings(settings):
 
 if __name__ == "__main__":
     current_settings = load_settings()
-    print("Mevcut Ayarlar:",current_settings)
+    print("Current Settings:", current_settings)
 
 

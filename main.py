@@ -4,16 +4,21 @@ import threading
 import time
 from PIL import Image, ImageDraw
 import pystray
+from collections import deque
 
 from config import load_settings, save_settings
-from gui import open_settings_window, TemperatureWidget
-from monitor import get_temperatures
+from monitor import get_system_stats
 from notifier import send_mobile_notification, send_windows_notification
 current_cpu_temp = 0.0
 current_gpu_temp = 0.0
+current_cpu_fan = None
+current_gpu_fan = None
+current_cpu_usage = 0.0
+current_gpu_usage = 0.0
 last_cpu_alert_time = 0.0
 last_gpu_alert_time = 0.0
 ALERT_COOLDOWN = 300
+stats_history = deque(maxlen=120)
 
 global_icon = None
 widget_instance = None
@@ -21,6 +26,7 @@ widget_instance = None
 
 def run_widget_thread():
     global widget_instance
+    from gui import TemperatureWidget
     
     def on_close():
         global widget_instance
@@ -59,16 +65,30 @@ def create_circle_icon(color):
     return image
 
 
+def show_settings():
+    from gui import open_settings_window
+    threading.Thread(target=lambda: open_settings_window(diagnose_callback=diagnose_system), daemon=True).start()
+
+
 def update_menu(icon):
-    cpu_str = f"CPU: {current_cpu_temp:.1f}°C" if current_cpu_temp > 0.0 else "CPU: N/A"
-    gpu_str = f"GPU: {current_gpu_temp:.1f}°C" if current_gpu_temp > 0.0 else "GPU: N/A"
-    
+    cpu_str = f"CPU: {current_cpu_temp:.1f}°C"
+    if current_cpu_fan is not None:
+        cpu_str += f" ({current_cpu_fan:.0f} RPM)"
+    elif current_cpu_temp <= 0.0:
+        cpu_str = "CPU: N/A"
+        
+    gpu_str = f"GPU: {current_gpu_temp:.1f}°C"
+    if current_gpu_fan is not None:
+        gpu_str += f" ({current_gpu_fan:.0f} RPM)"
+    elif current_gpu_temp <= 0.0:
+        gpu_str = "GPU: N/A"
+        
     menu_items = [
         pystray.MenuItem(cpu_str, lambda: None, enabled=False),
         pystray.MenuItem(gpu_str, lambda: None, enabled=False),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Desktop Widget", toggle_widget, checked=lambda item: widget_instance is not None),
-        pystray.MenuItem("Settings", lambda: threading.Thread(target=open_settings_window, daemon=True).start()),
+        pystray.MenuItem("Settings", lambda: show_settings()),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Exit", lambda: exit_app(icon)),
     ]
@@ -77,13 +97,29 @@ def update_menu(icon):
 
 def monitor_loop(icon):
     global current_cpu_temp, current_gpu_temp
+    global current_cpu_fan, current_gpu_fan, current_cpu_usage, current_gpu_usage
     global last_cpu_alert_time, last_gpu_alert_time
+    global stats_history
 
     while True:
         try:
-            temps = get_temperatures()
-            current_cpu_temp = temps.get("cpu") or 0.0
-            current_gpu_temp = temps.get("gpu") or 0.0
+            stats = get_system_stats()
+            current_cpu_temp = stats.get("cpu_temp") or 0.0
+            current_gpu_temp = stats.get("gpu_temp") or 0.0
+            current_cpu_fan = stats.get("cpu_fan")
+            current_gpu_fan = stats.get("gpu_fan")
+            current_cpu_usage = stats.get("cpu_usage") or 0.0
+            current_gpu_usage = stats.get("gpu_usage") or 0.0
+
+            stats_history.append({
+                "timestamp": time.time(),
+                "cpu_temp": current_cpu_temp,
+                "gpu_temp": current_gpu_temp,
+                "cpu_usage": current_cpu_usage,
+                "gpu_usage": current_gpu_usage,
+                "cpu_fan": current_cpu_fan,
+                "gpu_fan": current_gpu_fan
+            })
 
             settings = load_settings()
             cpu_limit = settings.get("cpu-max-temperature", 85)
@@ -104,8 +140,14 @@ def monitor_loop(icon):
             icon.icon = create_circle_icon(icon_color)
             
             cpu_tooltip = f"{current_cpu_temp:.1f}°C" if current_cpu_temp > 0.0 else "N/A"
+            if current_cpu_fan is not None:
+                cpu_tooltip += f" ({current_cpu_fan:.0f} RPM)"
+                
             gpu_tooltip = f"{current_gpu_temp:.1f}°C" if current_gpu_temp > 0.0 else "N/A"
-            icon.title = f"ThermalWatch\nCPU: {cpu_tooltip} | GPU: {gpu_tooltip}"
+            if current_gpu_fan is not None:
+                gpu_tooltip += f" ({current_gpu_fan:.0f} RPM)"
+                
+            icon.title = f"ThermalWatch\nCPU: {cpu_tooltip}\nGPU: {gpu_tooltip}"
 
             update_menu(icon)
             print(f"Reading: CPU = {current_cpu_temp:.1f}°C | GPU = {current_gpu_temp:.1f}°C")
@@ -127,8 +169,8 @@ def monitor_loop(icon):
                     msg = f"GPU has reached {current_gpu_temp:.1f}°C (Limit: {gpu_limit}°C)"
                     send_windows_notification(title, msg)
                     send_mobile_notification(ntfy_topic, title, msg)
-                    last_gpu_alert_time = now
-
+            import gc
+            gc.collect()
         except Exception as e:
             print(f"Error in monitor loop: {e}")
 
@@ -140,6 +182,53 @@ def exit_app(icon):
     icon.visible = False
     icon.stop()
     os._exit(0)
+
+
+def diagnose_system():
+    """Analyzes the stats_history data and returns a diagnostic health report."""
+    # Wait for at least 1 minute of data (12 points) to make it statistically valid
+    if len(stats_history) < 12:
+        return "Analyzing system... (Not enough data collected yet. Please wait a minute.)"
+
+    # Extract averages from history
+    cpu_temps = [d["cpu_temp"] for d in stats_history]
+    gpu_temps = [d["gpu_temp"] for d in stats_history]
+    cpu_usages = [d["cpu_usage"] for d in stats_history]
+    gpu_usages = [d["gpu_usage"] for d in stats_history]
+    
+    avg_cpu_temp = sum(cpu_temps) / len(cpu_temps)
+    avg_gpu_temp = sum(gpu_temps) / len(gpu_temps)
+    avg_cpu_usage = sum(cpu_usages) / len(cpu_usages)
+    avg_gpu_usage = sum(gpu_usages) / len(gpu_usages)
+
+    # Filter fans (extract only non-None values)
+    cpu_fans = [d["cpu_fan"] for d in stats_history if d["cpu_fan"] is not None]
+    gpu_fans = [d["gpu_fan"] for d in stats_history if d["gpu_fan"] is not None]
+    
+    avg_cpu_fan = sum(cpu_fans) / len(cpu_fans) if cpu_fans else None
+    avg_gpu_fan = sum(gpu_fans) / len(gpu_fans) if gpu_fans else None
+
+    # Diagnostic report list
+    diagnostics = []
+
+    # CPU Diagnostics
+    if avg_cpu_usage < 15.0 and avg_cpu_temp > 75.0:
+        diagnostics.append("⚠️ CPU is running hot despite low usage. Your thermal paste might be dry, or the cooler mount could be loose.")
+    elif avg_cpu_temp > 85.0:
+        diagnostics.append("⚠️ CPU temperature is critically high. Ensure your cooler is working and fan vents are clear.")
+
+    # GPU Diagnostics
+    if avg_gpu_temp > 80.0:
+        if avg_gpu_fan is not None and avg_gpu_fan > 2500:
+            diagnostics.append("⚠️ GPU is running hot even at high fan speeds. Check case air circulation or clean dust from fans.")
+        else:
+            diagnostics.append("⚠️ GPU temperature is high. If fans are not spinning, check fan curve configurations.")
+
+    # If no issues found
+    if not diagnostics:
+        return "✅ System health is excellent. Temperatures and usage patterns are normal."
+        
+    return "\n".join(diagnostics)
 
 
 def main():

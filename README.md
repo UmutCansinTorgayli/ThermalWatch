@@ -24,14 +24,14 @@ Built by people who got burned (pun intended) by a real AMD Ryzen thermal-report
 ## ✨ Features
 
 - 🖥️ **Silent System Tray Operation** — No taskbar clutter, no intrusive windows. It just lives quietly next to your clock.
-- 🌡️ **Real-Time CPU & GPU Monitoring** — Powered by `LibreHardwareMonitorLib` via `pythonnet`, pulling live sensor data straight from your hardware.
+- 🌡️ **Full Sensor Monitoring** — Tracks CPU/GPU temperatures, live usage load rates (%), and fan speeds (including motherboard CPU Fan and AIO Liquid Cooler Pump speeds in RPM) using `LibreHardwareMonitorLib` via `pythonnet`.
 - 🔔 **Dual Alert System** — Get notified locally via native **Windows Toast Notifications** (`winotify`) *and* remotely on your phone via **ntfy.sh push notifications**, so you're covered whether you're at your desk or across the room.
-- ⏱️ **Anti-Spam Notification Delay** — A carefully tuned **1-second buffer** prevents Windows from silently swallowing back-to-back alerts when CPU and GPU limits are breached in the same instant. No more missed warnings.
-- 🖱️ **Live Hover Tooltip** — Hover over the tray icon to instantly see `ThermalWatch | CPU: 44.5°C | GPU: 38.0°C` without opening any window.
-- 🎨 **Modern Fluent UI** — Built with `CustomTkinter` and refined with rounded corners (`corner_radius=10/12`) to match the **Windows 11 Fluent Design** language. No more Windows XP-era sharp edges.
+- ⏱️ **Anti-Spam Notification Delay** — A carefully tuned **1-second buffer** prevents Windows from silently swallowing back-to-back alerts when CPU and GPU limits are breached in the same instant.
+- 📊 **Local Offline "Thermal Health Advisor"** — Analyzes a rolling 10-minute history of loads and temperatures to diagnose potential hardware issues (e.g. flagging dry thermal paste or loose mounts if the CPU runs hot at low load).
+- 🎨 **Draggable Desktop Widget & Custom Theme Toggle** — A sleek, frameless, semi-transparent overlay widget with a centered dark/light mode toggle. Handled with a custom `magenta` transparency color key to ensure anti-aliased pixel-perfect rounded corners.
 - ⚡ **Auto-Start on Boot (Admin-Safe)** — Integrates directly with **Windows Task Scheduler** to launch silently at startup with the highest privileges, without triggering a UAC prompt every single boot.
-- 🛠️ **Built-in AMD Ryzen Fix** — A dedicated one-click **"Download PawnIO Driver"** button in Settings, because AMD Ryzen sensor access is a whole saga of its own (see below).
-- 🌍 **Fully English Codebase & UI** — Every comment, log line, and interface string has been translated and standardized to English for maximum contributor accessibility.
+- 🛠️ **Built-in AMD Ryzen Fix** — A dedicated one-click **"Download PawnIO Driver"** button in Settings, because AMD Ryzen sensor access requires a modern, Core-Isolation-compatible kernel driver.
+- 🍃 **Resource Efficient & Optimized** — Uses lazy-loading of UI libraries (`customtkinter`/`tkinter`) to consume less than **95-130MB RAM** in tray-only mode, with periodic garbage collection triggers and `<0.35% CPU` overhead.
 
 ---
 
@@ -136,9 +136,9 @@ Since ThermalWatch is fully open source, you're welcome — and encouraged — t
 
 5. **(Optional) Building your own `.exe`**
 
-   Want to package your modified version? A `build.spec` (PyInstaller) is included in the repo — just run:
+   Want to package your modified version? A `ThermalWatch.spec` (PyInstaller) is included in the repo — just run:
    ```bash
-   pyinstaller build.spec
+   pyinstaller --clean --noconfirm ThermalWatch.spec
    ```
 
 ### 🔁 Common to Both Options
