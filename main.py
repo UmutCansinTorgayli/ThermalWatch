@@ -175,16 +175,10 @@ def monitor_loop(icon):
 
             now = time.time()
 
-            lang = settings.get("language", "English")
-
             if current_cpu_temp >= cpu_limit:
                 if (now - last_cpu_alert_time) > ALERT_COOLDOWN:
-                    if lang == "Turkish":
-                        title = "🔥 Yüksek CPU Sıcaklığı!"
-                        msg = f"İşlemci (CPU) {current_cpu_temp:.1f}°C sıcaklığa ulaştı (Limit: {cpu_limit}°C)"
-                    else:
-                        title = "🔥 High CPU Temperature!"
-                        msg = f"CPU has reached {current_cpu_temp:.1f}°C (Limit: {cpu_limit}°C)"
+                    title = "🔥 High CPU Temperature!"
+                    msg = f"CPU has reached {current_cpu_temp:.1f}°C (Limit: {cpu_limit}°C)"
                     send_windows_notification(title, msg)
                     send_mobile_notification(ntfy_topic, title, msg)
                     last_cpu_alert_time = now
@@ -192,12 +186,8 @@ def monitor_loop(icon):
             if current_gpu_temp >= gpu_limit:
                 if (now - last_gpu_alert_time) > ALERT_COOLDOWN:
                     time.sleep(1)
-                    if lang == "Turkish":
-                        title = "🔥 Yüksek GPU Sıcaklığı!"
-                        msg = f"Ekran Kartı (GPU) {current_gpu_temp:.1f}°C sıcaklığa ulaştı (Limit: {gpu_limit}°C)"
-                    else:
-                        title = "🔥 High GPU Temperature!"
-                        msg = f"GPU has reached {current_gpu_temp:.1f}°C (Limit: {gpu_limit}°C)"
+                    title = "🔥 High GPU Temperature!"
+                    msg = f"GPU has reached {current_gpu_temp:.1f}°C (Limit: {gpu_limit}°C)"
                     send_windows_notification(title, msg)
                     send_mobile_notification(ntfy_topic, title, msg)
                     last_gpu_alert_time = now
@@ -287,14 +277,11 @@ def diagnose_system():
         if not api_key:
             return f"⚠️ Gemini API key is missing. Paste your key in Settings -> AI Advisor.\n\nFallback Report:\n\n{rule_report}"
 
-        lang = settings.get("language", "English")
-        lang_instruction = "in Turkish" if lang == "Turkish" else "in English"
-
         prompt = (
             f"Analyze this rolling 10-minute sensor telemetry:\n"
             f"{telemetry}\n\n"
             f"Rule-based diagnostic flags: {diagnostics if diagnostics else 'No issues detected.'}\n\n"
-            f"You are a professional PC hardware thermal and performance analyst. Give a friendly, extremely concise (max 3 sentences) diagnostics report {lang_instruction}. Suggest recommendations only if there are anomalies."
+            f"You are a professional PC hardware thermal and performance analyst. Give a friendly, extremely concise (max 3 sentences) diagnostics report in English. Suggest recommendations only if there are anomalies."
         )
 
         try:
@@ -314,6 +301,8 @@ def diagnose_system():
                 res_data = response.json()
                 ai_content = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
                 return f"🤖 [Gemini AI Health Report]\n\n{ai_content}"
+            elif response.status_code in [400, 403, 404]:
+                return f"⚠️ Gemini API Error (Status {response.status_code}).\nMake sure your API key is a valid Google AI Studio key (starts with 'AIzaSy').\n\nFallback Report:\n\n{rule_report}"
             else:
                 return f"⚠️ Gemini API Error (Status {response.status_code}). Fallback Report:\n\n{rule_report}"
         except Exception as e:
@@ -342,13 +331,10 @@ def diagnose_system():
                 f"Diagnose if the temperatures and fan speeds are normal for these usage loads. Suggest recommendations only if there are anomalies."
             )
             
-            lang = settings.get("language", "English")
-            lang_instruction = "Answer in Turkish." if lang == "Turkish" else "Answer in English."
-
             payload = {
                 "model": selected_model,
                 "messages": [
-                    {"role": "system", "content": f"You are a professional PC hardware thermal and performance analyst. Give a friendly, extremely concise (max 3 sentences) diagnostics report. {lang_instruction}"},
+                    {"role": "system", "content": "You are a professional PC hardware thermal and performance analyst. Give a friendly, extremely concise (max 3 sentences) diagnostics report. Answer in English."},
                     {"role": "user", "content": prompt}
                 ],
                 "stream": False

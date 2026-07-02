@@ -21,10 +21,9 @@ TRANSLATIONS = {
         "max_temp": "Max Temp Limit (°C):",
         "max_usage": "Max Usage Limit (%):",
         "ntfy_label": "ntfy.sh Topic Name (Mobile Alerts):",
-        "lang_label": "App & AI Language:",
         "startup": "Start with Windows (Administrator)",
-        "show_usage": "Show Usage (%) on Desktop Widget",
-        "show_fans": "Show Fan Speeds (RPM) on Desktop Widget",
+        "show_usage": "Show Usage (%) on Widget",
+        "show_fans": "Show Fan Speeds (RPM) on Widget",
         "save": "Save Settings",
         "cancel": "Cancel",
         "diagnose": "🔍 Diagnostics",
@@ -40,7 +39,7 @@ TRANSLATIONS = {
         "ai_none_desc": "💡 Built-in Advisor features:\n- Instantaneous response.\n- Zero resource usage (0% CPU, 0 MB memory overhead).\n- No Internet connection or external software required.",
         "gemini_key": "Gemini API Key:",
         "get_key": "🔑 Get Free API Key (Google AI Studio)",
-        "gemini_desc": "💡 Cloud AI features:\n- 100% Free: Google's developer tier has no costs.\n- High Speed: Diagnostics are analyzed in under 1 second.\n- Zero Installation: Nothing to download or run on your PC.",
+        "gemini_desc": "💡 Cloud AI features:\n- 100% Free: Google's developer tier has no costs.\n- High Speed: Diagnostics are analyzed in under 1 second.\n- Zero Installation: Nothing to download or run on your PC.\n- 🔒 Security: Stored locally in config.json and sent directly to Google.",
         "status_ready": "Status: Ready",
         "install_ollama": "📥 Auto-Install Ollama & Model",
         "ollama_desc": "💡 Local AI features:\n- 100% Offline: Data never leaves your PC.\n- Requirements: Download approx. 200MB installer + 900MB Qwen model.\n- Click Auto-Install to automate this process in the background.",
@@ -55,52 +54,6 @@ TRANSLATIONS = {
         "error_msg": "Could not save settings.",
         "invalid_input": "Invalid Input",
         "invalid_input_msg": "Please enter valid numeric values for limits."
-    },
-    "Turkish": {
-        "title": "ThermalWatch Yapılandırması",
-        "tab_limits": "Limitler & Arayüz",
-        "tab_telemetry": "Telemetri",
-        "tab_ai": "Yapay Zeka (AI)",
-        "tab_pawnio": "Ryzen Sıcaklık Çözümü",
-        "cpu_settings": "CPU (İşlemci) Ayarları",
-        "gpu_settings": "GPU (Ekran Kartı) Ayarları",
-        "max_temp": "Maks Sıcaklık Limiti (°C):",
-        "max_usage": "Maks Kullanım Limiti (%):",
-        "ntfy_label": "ntfy.sh Konu Başlığı (Mobil Bildirim):",
-        "lang_label": "Uygulama & AI Dili:",
-        "startup": "Windows ile Birlikte Başlat (Yönetici)",
-        "show_usage": "Masaüstü Widget'ında Kullanımı (%) Göster",
-        "show_fans": "Masaüstü Widget'ında Fan Hızını (RPM) Göster",
-        "save": "Ayarları Kaydet",
-        "cancel": "İptal",
-        "diagnose": "🔍 Sistem Teşhisi",
-        # Telemetry
-        "cpu_status": "İşlemci Durumu (CPU)",
-        "gpu_status": "Ekran Kartı Durumu (GPU)",
-        "temp": "Sıcaklık",
-        "usage": "Kullanım",
-        "fan": "Fan",
-        # AI Advisor
-        "ai_engine": "Yapay Zeka Motorunu Seçin:",
-        "ai_none": "✅ Klasik Kurallı Teşhis Aktif",
-        "ai_none_desc": "💡 Dahili Teşhis Özellikleri:\n- Anında yanıt süresi.\n- Sıfır kaynak tüketimi (%0 CPU, 0 MB bellek yükü).\n- İnternet bağlantısı veya ek yazılım gerektirmez.",
-        "gemini_key": "Gemini API Anahtarı:",
-        "get_key": "🔑 Ücretsiz API Anahtarı Al (Google AI Studio)",
-        "gemini_desc": "💡 Bulut Yapay Zeka Özellikleri:\n- %100 Ücretsiz: Google geliştirici kotası ücretsizdir.\n- Yüksek Hız: Analizler 1 saniyeden kısa sürede sonuçlanır.\n- Sıfır Kurulum: Bilgisayarınıza hiçbir şey indirme gerektirmez.",
-        "status_ready": "Durum: Hazır",
-        "install_ollama": "📥 Otomatik Ollama & Model Yükle",
-        "ollama_desc": "💡 Yerel Yapay Zeka Özellikleri:\n- %100 Çevrimdışı: Veriler asla bilgisayarınızdan çıkmaz.\n- Gereksinimler: Yaklaşık 200MB yükleyici + 900MB Qwen modeli.\n- Arka planda indirme işlemini başlatmak için tıklayın.",
-        # PawnIO
-        "pawn_title": "AMD Ryzen Sıcaklık Çözümü",
-        "pawn_desc": "💡 İşlemci Sıcaklığı Görünmüyor mu?\n\n1. ThermalWatch'ı her zaman 'Yönetici Olarak' çalıştırın.\n2. Eğer AMD Ryzen işlemci sıcaklığı hala görünmüyorsa,\n   PawnIO sürücüsünü kurmanız gerekir.\n3. PawnIO, Çekirdek Yalıtımı ile uyumlu güvenli bir sürücüdür.",
-        "pawn_btn": "PawnIO Sürücüsünü İndir",
-        # Messageboxes
-        "success": "Başarılı",
-        "success_msg": "Ayarlar başarıyla kaydedildi!",
-        "error": "Hata",
-        "error_msg": "Ayarlar kaydedilemedi.",
-        "invalid_input": "Geçersiz Giriş",
-        "invalid_input_msg": "Lütfen limitler için geçerli sayısal değerler girin."
     }
 }
 
@@ -157,8 +110,7 @@ def set_startup_status(enable):
 def open_settings_window(diagnose_callback=None, get_stats_callback=None):
     """Opens the modern CustomTkinter settings window with tabs."""
     settings = load_settings()
-    lang = settings.get("language", "English")
-    t = TRANSLATIONS.get(lang, TRANSLATIONS["English"])
+    t = TRANSLATIONS["English"]
 
     root = ctk.CTk()
     root.title(f"ThermalWatch - {t['title']}")
@@ -232,32 +184,21 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
     ntfy_entry.insert(0, "" if topic_val is None else str(topic_val))
     ntfy_entry.pack(fill="x", padx=15)
 
-    # Language Selection Row
-    lang_frame = ctk.CTkFrame(limits_tab, fg_color="transparent")
-    lang_frame.pack(fill="x", padx=15, pady=(8, 0))
-
-    lang_label = ctk.CTkLabel(lang_frame, text=t["lang_label"], font=("Helvetica", 11, "bold"))
-    lang_label.pack(side="left", padx=(0, 10))
-
-    lang_var = ctk.StringVar(value=lang)
-    lang_menu = ctk.CTkOptionMenu(lang_frame, values=["English", "Turkish"], variable=lang_var, width=120, height=26, corner_radius=6)
-    lang_menu.pack(side="left")
-
     # Startup & Widget Options Checkboxes
     options_frame = ctk.CTkFrame(limits_tab, fg_color="transparent")
     options_frame.pack(fill="x", padx=15, pady=(15, 0))
 
     startup_var = ctk.StringVar(value="on" if check_startup_status() else "off")
     startup_checkbox = ctk.CTkCheckBox(options_frame, text=t["startup"], variable=startup_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
-    startup_checkbox.pack(pady=4, anchor="w")
+    startup_checkbox.pack(pady=4, anchor="w", padx=(5, 0))
 
     show_usage_var = ctk.StringVar(value="on" if settings.get("widget-show-usage", True) else "off")
     show_usage_checkbox = ctk.CTkCheckBox(options_frame, text=t["show_usage"], variable=show_usage_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
-    show_usage_checkbox.pack(pady=4, anchor="w")
+    show_usage_checkbox.pack(pady=4, anchor="w", padx=(5, 0))
 
     show_fans_var = ctk.StringVar(value="on" if settings.get("widget-show-fans", True) else "off")
     show_fans_checkbox = ctk.CTkCheckBox(options_frame, text=t["show_fans"], variable=show_fans_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
-    show_fans_checkbox.pack(pady=4, anchor="w")
+    show_fans_checkbox.pack(pady=4, anchor="w", padx=(5, 0))
 
     # ==========================================
     # TAB 2: TELEMETRY (LIVE DASHBOARD & FANS)
@@ -526,9 +467,23 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
 
     # --- 2. GEMINI FRAME ---
     ctk.CTkLabel(gemini_frame, text=t["gemini_key"], font=("Helvetica", 11, "bold")).pack(anchor="w", pady=(2, 2))
-    gemini_key_entry = ctk.CTkEntry(gemini_frame, placeholder_text="Paste your API key here...", width=350, corner_radius=8)
+    key_frame = ctk.CTkFrame(gemini_frame, fg_color="transparent")
+    key_frame.pack(anchor="w", fill="x", pady=(0, 5))
+
+    gemini_key_entry = ctk.CTkEntry(key_frame, placeholder_text="Paste your API key here...", width=310, corner_radius=8, show="*")
     gemini_key_entry.insert(0, settings.get("gemini-api-key", ""))
-    gemini_key_entry.pack(anchor="w", pady=(0, 5))
+    gemini_key_entry.pack(side="left")
+
+    def toggle_key_visibility():
+        if gemini_key_entry.cget("show") == "*":
+            gemini_key_entry.configure(show="")
+            toggle_btn.configure(text="👁️")
+        else:
+            gemini_key_entry.configure(show="*")
+            toggle_btn.configure(text="🔒")
+
+    toggle_btn = ctk.CTkButton(key_frame, text="🔒", width=35, height=28, corner_radius=8, command=toggle_key_visibility, fg_color="#34495e", hover_color="#2c3e50")
+    toggle_btn.pack(side="left", padx=(5, 0))
 
     def open_ai_studio():
         import webbrowser
@@ -546,6 +501,7 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
     def install_ollama_background(lbl, btn):
         import threading
         import urllib.request
+        import json
         import os
         import subprocess
         import tempfile
@@ -555,64 +511,123 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
         def run():
             try:
                 btn.configure(state="disabled")
-                lbl.configure(text="📥 Downloading Ollama Installer (220MB)...", text_color="#e67e22")
-                
-                # 1. Download Setup Executable
-                installer_url = "https://ollama.com/download/OllamaSetup.exe"
-                temp_dir = tempfile.gettempdir()
-                installer_path = os.path.join(temp_dir, "OllamaSetup.exe")
-                
-                req = urllib.request.Request(installer_url, headers={'User-Agent': 'Mozilla/5.0'})
-                with urllib.request.urlopen(req) as response, open(installer_path, 'wb') as out_file:
-                    total_size = int(response.info().get('Content-Length', 0))
-                    downloaded = 0
-                    block_size = 1024 * 64
-                    while True:
-                        buffer = response.read(block_size)
-                        if not buffer:
-                            break
-                        downloaded += len(buffer)
-                        out_file.write(buffer)
-                        percent = int(downloaded * 100 / total_size) if total_size else 0
-                        lbl.configure(text=f"📥 Downloading: {percent}%")
-                        
-                lbl.configure(text="⚙️ Launching installer... Please click Install.", text_color="#e67e22")
-                
-                # 2. Run the installer (wait for user)
-                proc = subprocess.Popen([installer_path])
-                proc.wait()
-                
-                # 3. Wait for Service & Pull Model
-                lbl.configure(text="🔄 Starting Ollama service...", text_color="#e67e22")
-                time.sleep(6)
-                
+
+                # 1. Determine paths and check if installed
                 local_appdata = os.environ.get("LOCALAPPDATA", "")
                 ollama_bin = os.path.join(local_appdata, "Programs", "Ollama", "ollama.exe")
-                
-                if not os.path.exists(ollama_bin):
-                    ollama_bin = shutil.which("ollama.exe") or "ollama"
-                    
-                lbl.configure(text="📥 Pulling Qwen2.5:1.5b model (approx. 900MB)...", text_color="#e67e22")
-                
-                pull_proc = subprocess.Popen(
-                    [ollama_bin, "pull", "qwen2.5:1.5b"],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
-                )
-                
-                while True:
-                    line = pull_proc.stdout.readline()
-                    if not line:
-                        break
-                    if "pulling" in line.lower() or "downloading" in line.lower():
-                        clean_line = line.strip().replace("\r", "").replace("\n", "")
-                        if len(clean_line) > 40:
-                            clean_line = clean_line[:40] + "..."
-                        lbl.configure(text=f"🤖 {clean_line}")
-                
-                pull_proc.wait()
+                is_installed = os.path.exists(ollama_bin) or (shutil.which("ollama.exe") is not None)
+
+                # 2. Check if Ollama is running and has the model
+                is_running = False
+                has_model = False
+                try:
+                    req = urllib.request.Request("http://localhost:11434/api/tags")
+                    with urllib.request.urlopen(req, timeout=1.5) as response:
+                        if response.status == 200:
+                            is_running = True
+                            data = json.loads(response.read().decode('utf-8'))
+                            models = data.get("models", [])
+                            for m in models:
+                                name = m.get("name", "")
+                                if "qwen2.5" in name:
+                                    has_model = True
+                                    break
+                except Exception:
+                    pass
+
+                # If already running and has model, we are done!
+                if is_running and has_model:
+                    lbl.configure(text="✅ Ollama & Model are already installed and ready!", text_color="#2ecc71")
+                    return
+
+                # 3. If installed but NOT running, try starting it
+                if not is_running and is_installed:
+                    lbl.configure(text="🔄 Starting Ollama service...", text_color="#e67e22")
+                    if os.path.exists(ollama_bin):
+                        subprocess.Popen([ollama_bin], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    else:
+                        resolved_bin = shutil.which("ollama.exe") or "ollama"
+                        subprocess.Popen([resolved_bin], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    time.sleep(4)
+
+                    # Re-verify if started and check model again
+                    try:
+                        req = urllib.request.Request("http://localhost:11434/api/tags")
+                        with urllib.request.urlopen(req, timeout=1.5) as response:
+                            if response.status == 200:
+                                is_running = True
+                                data = json.loads(response.read().decode('utf-8'))
+                                models = data.get("models", [])
+                                for m in models:
+                                    name = m.get("name", "")
+                                    if "qwen2.5" in name:
+                                        has_model = True
+                                        break
+                    except Exception:
+                        pass
+
+                    if is_running and has_model:
+                        lbl.configure(text="✅ Ollama & Model are already installed and ready!", text_color="#2ecc71")
+                        return
+
+                # 4. If NOT installed at all, download and install it
+                if not is_installed:
+                    lbl.configure(text="📥 Downloading Ollama Installer (220MB)...", text_color="#e67e22")
+                    installer_url = "https://ollama.com/download/OllamaSetup.exe"
+                    temp_dir = tempfile.gettempdir()
+                    installer_path = os.path.join(temp_dir, "OllamaSetup.exe")
+
+                    req = urllib.request.Request(installer_url, headers={'User-Agent': 'Mozilla/5.0'})
+                    with urllib.request.urlopen(req) as response, open(installer_path, 'wb') as out_file:
+                        total_size = int(response.info().get('Content-Length', 0))
+                        downloaded = 0
+                        block_size = 1024 * 64
+                        while True:
+                            buffer = response.read(block_size)
+                            if not buffer:
+                                break
+                            downloaded += len(buffer)
+                            out_file.write(buffer)
+                            percent = int(downloaded * 100 / total_size) if total_size else 0
+                            lbl.configure(text=f"📥 Downloading: {percent}%")
+
+                    lbl.configure(text="⚙️ Launching installer... Please click Install.", text_color="#e67e22")
+
+                    # Run the installer (wait for user to complete)
+                    proc = subprocess.Popen([installer_path])
+                    proc.wait()
+
+                    lbl.configure(text="🔄 Starting Ollama service...", text_color="#e67e22")
+                    time.sleep(6)
+
+                    if not os.path.exists(ollama_bin):
+                        ollama_bin = shutil.which("ollama.exe") or "ollama"
+
+                # 5. Pull model if it doesn't have it
+                if not has_model:
+                    lbl.configure(text="📥 Pulling Qwen2.5:1.5b model (approx. 900MB)...", text_color="#e67e22")
+
+                    pull_proc = subprocess.Popen(
+                        [ollama_bin, "pull", "qwen2.5:1.5b"],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        text=True,
+                        encoding="utf-8",
+                        creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+                    )
+
+                    while True:
+                        line = pull_proc.stdout.readline()
+                        if not line:
+                            break
+                        if "pulling" in line.lower() or "downloading" in line.lower():
+                            clean_line = line.strip().replace("\r", "").replace("\n", "")
+                            if len(clean_line) > 40:
+                                clean_line = clean_line[:40] + "..."
+                            lbl.configure(text=f"🤖 {clean_line}")
+
+                    pull_proc.wait()
+
                 lbl.configure(text="✅ Ollama & Model installed successfully!", text_color="#2ecc71")
             except Exception as e:
                 lbl.configure(text=f"❌ Installation failed: {str(e)[:30]}", text_color="#e74c3c")
@@ -621,12 +636,52 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
 
         threading.Thread(target=run, daemon=True).start()
 
+    def check_ollama_status_onload(lbl):
+        import threading
+        import urllib.request
+        import json
+        import os
+        import shutil
+
+        def check():
+            try:
+                local_appdata = os.environ.get("LOCALAPPDATA", "")
+                ollama_bin = os.path.join(local_appdata, "Programs", "Ollama", "ollama.exe")
+                is_installed = os.path.exists(ollama_bin) or (shutil.which("ollama.exe") is not None)
+
+                if not is_installed:
+                    lbl.configure(text="Status: Not Installed", text_color="#e74c3c")
+                    return
+
+                # Check if running and model is loaded
+                req = urllib.request.Request("http://localhost:11434/api/tags")
+                with urllib.request.urlopen(req, timeout=1.0) as response:
+                    if response.status == 200:
+                        data = json.loads(response.read().decode('utf-8'))
+                        models = data.get("models", [])
+                        has_model = False
+                        for m in models:
+                            if "qwen2.5" in m.get("name", ""):
+                                has_model = True
+                                break
+                        if has_model:
+                            lbl.configure(text="Status: Ready (Installed & Running)", text_color="#2ecc71")
+                        else:
+                            lbl.configure(text="Status: Installed (Model Missing)", text_color="#e67e22")
+                    else:
+                        lbl.configure(text="Status: Installed (Not Running)", text_color="#e67e22")
+            except Exception:
+                lbl.configure(text="Status: Installed (Not Running)", text_color="#e67e22")
+
+        threading.Thread(target=check, daemon=True).start()
+
     def on_install_click():
         install_ollama_background(status_label, install_btn)
 
     install_btn = ctk.CTkButton(ollama_frame, text=t["install_ollama"], command=on_install_click, fg_color="#2ecc71", hover_color="#27ae60", corner_radius=10, width=240, height=28, font=("Helvetica", 11, "bold"))
     install_btn.pack(anchor="w", pady=(2, 2))
     status_label.pack(anchor="w", pady=2)
+    check_ollama_status_onload(status_label)
 
     desc_ollama = t["ollama_desc"]
     ctk.CTkLabel(ollama_frame, text=desc_ollama, font=("Helvetica", 11), text_color="#bdc3c7", justify="left", anchor="w").pack(anchor="w", pady=2)
@@ -677,7 +732,7 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
                 "widget-show-fans": show_fans_var.get() == "on",
                 "ai-engine": selected_engine,
                 "gemini-api-key": gemini_key_entry.get().strip(),
-                "language": lang_var.get()
+                "language": "English"
             }
 
             if (

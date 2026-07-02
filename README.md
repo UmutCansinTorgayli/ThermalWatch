@@ -86,7 +86,22 @@ We took that discovery and built it directly into ThermalWatch:
 
 ## 📸 What It Looks Like
 
-*(Screenshots coming soon!)*
+### 🖥️ Desktop Widget (Dark & Light Mode)
+
+<p align="center">
+  <img src="assets/widget_dark.png" alt="Desktop Widget Dark Mode" width="280" style="margin-right: 20px;">
+  <img src="assets/widget_light.png" alt="Desktop Widget Light Mode" width="280">
+</p>
+
+### ⚙️ Settings Panel (Tabs Overview)
+
+| Limits & Widget Configuration | Live Telemetry & Fan Speed |
+| :---: | :---: |
+| <img src="assets/settings_limits.png" width="350"> | <img src="assets/settings_telemetry.png" width="350"> |
+
+| AI Diagnostics Advisor (API Key Masked) | AMD Ryzen Troubleshooting (PawnIO) |
+| :---: | :---: |
+| <img src="assets/settings_ai.png" width="350"> | <img src="assets/settings_pawnio.png" width="350"> |
 
 ---
 
@@ -165,6 +180,20 @@ Since ThermalWatch is fully open source, you're welcome — and encouraged — t
 | ntfy Topic | Your personal ntfy.sh push channel | *(empty)* |
 | Start with Windows | Enables silent, elevated auto-start via Task Scheduler | `Off` |
 | Notification Delay | Anti-spam buffer between consecutive alerts | `1s` |
+
+---
+
+## 📜 Release History
+
+### v1.3.0 — The Performance, Security, Assets & Polish Update (Current)
+- 🎨 **Widget Theme Toggle**: Switch between Dark and Light mode on the fly with a dedicated button on the desktop widget.
+- 🌀 **Fan & Load Monitoring**: Added real-time tracking for CPU/GPU usage percentages and fan/pump RPMs, using recursive motherboard SuperI/O scanning.
+- 🍃 **Lazy-Loaded GUI & Optimization**: Drastically reduced tray-only RAM usage to ~95-130MB by deferring GUI framework loading.
+- 🔒 **API Key Security & Masking**: Masked the Gemini API Key input field (`*`) and added a show/hide (🔒/👁️) toggle button, along with local storage security disclaimers.
+- 🤖 **Improved AI Installer & Error Diagnostics**: Added status pre-checking to the Ollama installer to avoid redundant downloads, resolved the 'charmap' decoding crash on Windows, and added detailed error guidelines for invalid API keys.
+- 📸 **Official Preview Assets**: Added the official product mockup showcase image `assets/preview.png` directly to the README.
+- 🛠️ **UI Polish & Fixes**: Fixed rounded corner black borders on Windows using a magenta color key, and prevented text clipping on widget labels and settings checkboxes.
+- ⚡ **Build Optimizations**: Streamlined PyInstaller specs with level 2 optimization and module exclusion.
 
 ---
 
