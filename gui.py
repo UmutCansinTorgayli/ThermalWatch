@@ -65,7 +65,7 @@ def open_settings_window(diagnose_callback=None):
 
     root = ctk.CTk()
     root.title("ThermalWatch - Settings")
-    root.geometry("460x480")
+    root.geometry("460x500")
     root.resizable(False, False)
 
     # Header
@@ -122,9 +122,9 @@ def open_settings_window(diagnose_callback=None):
     ntfy_entry.insert(0, "" if topic_val is None else str(topic_val))
     ntfy_entry.pack(fill="x", padx=30)
 
-    # 6. Startup Configuration & Widget Options Row
+    # 6. Startup Configuration & Widget Options Row 1
     options_frame = ctk.CTkFrame(root, fg_color="transparent")
-    options_frame.pack(fill="x", padx=30, pady=(10, 0))
+    options_frame.pack(fill="x", padx=30, pady=(8, 0))
 
     startup_var = ctk.StringVar(value="on" if check_startup_status() else "off")
     startup_checkbox = ctk.CTkCheckBox(options_frame, text="Start with Windows", variable=startup_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
@@ -138,6 +138,14 @@ def open_settings_window(diagnose_callback=None):
     show_fans_checkbox = ctk.CTkCheckBox(options_frame, text="Show Fans (RPM)", variable=show_fans_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
     show_fans_checkbox.pack(side="left")
 
+    # Options Row 2 (AI Diagnostics Toggle)
+    options_frame2 = ctk.CTkFrame(root, fg_color="transparent")
+    options_frame2.pack(fill="x", padx=30, pady=(6, 0))
+
+    use_ollama_var = ctk.StringVar(value="on" if settings.get("use-local-ollama", False) else "off")
+    use_ollama_checkbox = ctk.CTkCheckBox(options_frame2, text="Enable Local Ollama AI Diagnostics", variable=use_ollama_var, onvalue="on", offvalue="off", font=("Helvetica", 11), corner_radius=6)
+    use_ollama_checkbox.pack(side="left")
+
     def save_action():
         try:
             new_settings = {
@@ -147,7 +155,8 @@ def open_settings_window(diagnose_callback=None):
                 "gpu-max-usage": int(gpu_usage_entry.get()),
                 "ntfy-topic": ntfy_entry.get().strip() or None,
                 "widget-show-usage": show_usage_var.get() == "on",
-                "widget-show-fans": show_fans_var.get() == "on"
+                "widget-show-fans": show_fans_var.get() == "on",
+                "use-local-ollama": use_ollama_var.get() == "on"
             }
 
             if (

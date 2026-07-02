@@ -231,11 +231,68 @@ def diagnose_system():
         else:
             diagnostics.append("⚠️ GPU temperature is high. If fans are not spinning, check fan curve configurations.")
 
-    # If no issues found
+    # Rule-based output fallback
     if not diagnostics:
-        return "✅ System health is excellent. Temperatures and usage patterns are normal."
+        rule_report = "✅ System health is excellent. Temperatures and usage patterns are normal."
+    else:
+        rule_report = "\n".join(diagnostics)
+
+    # Read configuration for Ollama
+    settings = load_settings()
+    use_ollama = settings.get("use-local-ollama", False)
+    if not use_ollama:
+        return rule_report
+
+    try:
+        import requests
+        # Check if Ollama is running and query installed models
+        tags_response = requests.get("http://localhost:11434/api/tags", timeout=2)
+        if tags_response.status_code != 200:
+            return f"⚠️ Ollama API Error (Status {tags_response.status_code}). Fallback Report:\n\n{rule_report}"
+            
+        models_data = tags_response.json()
+        models = models_data.get("models", [])
+        if not models:
+            return f"⚠️ Ollama is running but no local models are installed.\nRun 'ollama run gemma2' or similar in command prompt.\n\nFallback Report:\n\n{rule_report}"
+            
+        # Select first available model
+        selected_model = models[0]["name"]
         
-    return "\n".join(diagnostics)
+        # Format metrics history summary for LLM
+        telemetry = {
+            "avg_cpu_temp": f"{avg_cpu_temp:.1f}°C",
+            "avg_gpu_temp": f"{avg_gpu_temp:.1f}°C" if avg_gpu_temp > 0.0 else "N/A",
+            "avg_cpu_usage": f"{avg_cpu_usage:.1f}%",
+            "avg_gpu_usage": f"{avg_gpu_usage:.1f}%",
+            "avg_cpu_fan": f"{avg_cpu_fan:.0f} RPM" if avg_cpu_fan else "N/A",
+            "avg_gpu_fan": f"{avg_gpu_fan:.0f} RPM" if avg_gpu_fan else "N/A"
+        }
+        
+        prompt = (
+            f"You are an expert PC hardware diagnostics assistant. Analyze this rolling 10-minute sensor telemetry:\n"
+            f"{telemetry}\n\n"
+            f"Static rule checks: {diagnostics if diagnostics else 'No issues detected.'}\n\n"
+            f"Generate a very concise (maximum 3 sentences) friendly report summarizing system health. Keep it in English."
+        )
+        
+        payload = {
+            "model": selected_model,
+            "messages": [
+                {"role": "system", "content": "You are a professional PC diagnostics assistant. Give a friendly, extremely concise (max 3 sentences) report. Answer in English."},
+                {"role": "user", "content": prompt}
+            ],
+            "stream": False
+        }
+        
+        chat_response = requests.post("http://localhost:11434/api/chat", json=payload, timeout=8)
+        if chat_response.status_code == 200:
+            ai_content = chat_response.json().get("message", {}).get("content", "").strip()
+            return f"🤖 [AI Health Report ({selected_model})]\n\n{ai_content}"
+        else:
+            return f"⚠️ Ollama returned error {chat_response.status_code}. Fallback Report:\n\n{rule_report}"
+            
+    except Exception as e:
+        return f"⚠️ Could not connect to Ollama (Connection Refused or Timeout).\nMake sure Ollama is open and running.\n\nFallback Report:\n\n{rule_report}"
 
 
 def main():
