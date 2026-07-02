@@ -65,7 +65,7 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
 
     root = ctk.CTk()
     root.title("ThermalWatch - Settings Dashboard")
-    root.geometry("460x520")
+    root.geometry("460x540")
     root.resizable(False, False)
 
     # Header
@@ -73,7 +73,7 @@ def open_settings_window(diagnose_callback=None, get_stats_callback=None):
     title_label.pack(pady=(12, 5))
 
     # 🗂️ CTkTabview Setup
-    tabview = ctk.CTkTabview(root, width=420, height=390, corner_radius=12)
+    tabview = ctk.CTkTabview(root, width=420, height=350, corner_radius=12)
     tabview.pack(padx=20, pady=(0, 10), fill="both", expand=True)
 
     tabview.add("Limits & Widget")
