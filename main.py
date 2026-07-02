@@ -269,16 +269,16 @@ def diagnose_system():
         }
         
         prompt = (
-            f"You are an expert PC hardware diagnostics assistant. Analyze this rolling 10-minute sensor telemetry:\n"
+            f"Analyze this rolling 10-minute sensor telemetry:\n"
             f"{telemetry}\n\n"
-            f"Static rule checks: {diagnostics if diagnostics else 'No issues detected.'}\n\n"
-            f"Generate a very concise (maximum 3 sentences) friendly report summarizing system health. Keep it in English."
+            f"Rule-based diagnostic flags: {diagnostics if diagnostics else 'No issues detected.'}\n\n"
+            f"Diagnose if the temperatures and fan speeds are normal for these usage loads. Suggest recommendations only if there are anomalies."
         )
         
         payload = {
             "model": selected_model,
             "messages": [
-                {"role": "system", "content": "You are a professional PC diagnostics assistant. Give a friendly, extremely concise (max 3 sentences) report. Answer in English."},
+                {"role": "system", "content": "You are a professional PC hardware thermal and performance analyst. Give a friendly, extremely concise (max 3 sentences) diagnostics report. Answer in English."},
                 {"role": "user", "content": prompt}
             ],
             "stream": False
