@@ -15,3 +15,5 @@ It serves as a lightweight alternative to resource-heavy hardware monitoring das
 5. **Modern Settings Panel**: Fluent UI styled window (`customtkinter`) to edit temperature thresholds, CPU/GPU usage limits, mobile alert topic, and Windows startup run configuration.
 6. **Auto-Start on Boot**: Integrates with Windows Task Scheduler (`schtasks`) to run at startup with administrator privileges (bypassing UAC prompts after initial setup).
 7. **AMD Ryzen Support**: Troubleshoots and assists AMD users to download the signed `PawnIO` driver to resolve missing CPU sensor data.
+8. **AI Telemetry Advisor**: Analyzes a rolling 10-minute curve of usage, temperature, and fan speeds (via Google Gemini or Local Ollama) to diagnose cooling anomalies and give smart recommendations (e.g., dry thermal paste, dusty fans, or configuration issues) rather than simple threshold alerts.
+

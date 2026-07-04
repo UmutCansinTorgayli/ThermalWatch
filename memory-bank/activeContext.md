@@ -6,32 +6,27 @@
 - The core functionality is fully implemented (temperature monitoring, settings GUI, desktop widget, tray icon, notifications).
 
 ## Recent Changes
-- Initialized the memory bank files:
-  - `projectbrief.md`: Documents the objectives and features.
-  - `activeContext.md`: Tracks the current state, focus, and next steps.
-  - `progress.md`: Tracks what works, what needs work, and overall status.
-  - `systemPatterns.md`: Explains codebase architecture, multi-threading, and system boundaries.
-  - `techContext.md`: Lays out the technology stack and requirements.
-- Added dynamic theme toggle feature (Dark / Light mode) directly on the draggable Temperature Widget using a Sun/Moon button.
-- Extended `monitor.py` and `main.py` to query, store, and display CPU and GPU fan speeds (RPM) and usage loads (%) alongside temperatures.
-- Benchmarked query performance: average query takes 0.32s, translating to an estimated 0.4% overall CPU load.
-
-- Implemented recursive `SubHardware` scanning in `monitor.py` to correctly capture CPU fan speeds from the Motherboard's SuperI/O chip.
-- Fixed widget layout styling to center the theme toggle button and prevent text clipping on left/right labels.
-- Resolved transparent rounded corner black borders on Windows by switching the transparency color mask key to `magenta`.
-- Implemented lazy loading of `customtkinter` and `gui.py` inside `main.py` to drastically reduce startup RAM footprint when running in tray-only mode.
-- Optimized PyInstaller compilation by using level 2 bytecode optimization (`optimize=2`) and excluding unused libraries (like `unittest`, `multiprocessing`, `setuptools`, etc.).
-- Integrated periodic garbage collection (`gc.collect()`) triggers at the end of sensor updates and window close actions.
-- Drafted comprehensive release notes for the major v1.3.0 update and appended the release history section to the repository's `README.md`.
-- Organized actual user screenshots of the widget themes (dark/light) and all settings panel tabs into the `assets/` folder and embedded them in a structured grid in `README.md`.
-- Removed multi-language options to standardize the application to English-only, simplifying configuration storage, notifications, and AI diagnosis prompts.
-- Fixed checkbox clipping bug by adding horizontal padding (`padx=(5, 0)`) to option checkboxes and shortening the widget display text labels.
-- Added API key masking (`show="*"`) and a visibility toggle button (🔒/👁️) for the Gemini API key input in the settings panel, along with local storage security disclaimers and improved error diagnostics for invalid keys.
+- Redesigned the settings panel using a left-sidebar page switcher (`680x550` layout) with modern Windows 11 Fluent-style rounded cards and slider controls.
+- Replaced native Tkinter messageboxes with a custom `FluentDialog` (CTkToplevel).
+- Integrated the AI Diagnostics output textbox directly in the settings panel with asynchronous query support and loading state indicator.
+- Upgraded the settings UI controls by replacing old-style checkboxes with modern Windows 11 toggle switches (`ctk.CTkSwitch`).
+- Implemented **Padding Shadow Wrappers** for settings panel cards (CPU, GPU, and Options) using slightly darker outer frames and bottom-heavy offset padding to emulate a native drop-shadow feel.
+- Modified the PyInstaller specification (`ThermalWatch.spec`) with `uac_admin=True` to embed a manifest requiring Administrator execution privileges on double-click launch.
+- Upgraded the frameless Temperature Widget:
+  - Added visual divider frames next to the theme toggle.
+  - Implemented independent CPU and GPU text coloring based on individual sensor status.
+  - Implemented a **Dynamic Warning Border Accent Glow** where the widget border turns yellow or red matching the worst-case sensor alert state.
+  - Enabled **Native Windows Drop Shadows** under the frameless widget window class using OS `ctypes` bindings.
+  - Removed the double-click-to-close binding on the widget to avoid accidental closing while dragging.
+  - Increased widget width from 280px to 300px to prevent right-side text clipping ("GPU" showing as "PU").
+  - Fixed CustomTkinter button clipping and sharp-edge canvas bugs by setting explicit widths on settings action buttons.
 
 ## Current Focus
-- Verification of optimized memory consumption levels in tray-only mode.
-
+- Verification of the new Windows 11 Fluent settings arayüzü and widget.
+- Final stability validation and telemetry diagnostics output checking.
 
 ## Next Steps
-1. Confirm if any further diagnostic warning levels need adjustments.
-2. Confirm with the user if they want fan speeds displayed on the desktop widget as well.
+1. Test the dynamic border warning glow under simulated heavy CPU/GPU loads.
+2. Verify local Ollama and Google Gemini diagnostic reports render cleanly.
+3. Keep monitoring Windows system tray integration reliability.
+

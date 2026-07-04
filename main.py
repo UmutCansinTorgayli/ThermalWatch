@@ -5,6 +5,14 @@ import time
 from PIL import Image, ImageDraw
 import pystray
 from collections import deque
+import ctypes
+
+try:
+    # Register AppUserModelID to group process correctly and display icon.ico on taskbar
+    myappid = "UmutCansinTorgayli.ThermalWatch.v1"
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+except Exception:
+    pass
 
 from config import load_settings, save_settings
 from monitor import get_system_stats

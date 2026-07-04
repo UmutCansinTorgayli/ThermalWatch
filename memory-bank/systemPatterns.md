@@ -40,3 +40,13 @@ Temperature queries leverage the C# `.NET` framework library `LibreHardwareMonit
 To avoid flooding the user when CPU and GPU temps cross thresholds simultaneously:
 - Cooldown timer (`ALERT_COOLDOWN = 300` seconds / 5 minutes) tracked separately for CPU and GPU.
 - A **1-second delay** (`time.sleep(1)`) is introduced before the GPU alert if both CPU and GPU limits are breached at the same time. This ensures Windows notification center does not drop/swallow the second toast notification.
+
+## GUI Redesign & Sidebar Pattern
+
+To transition from a simple tabbed panel to a modern Windows 11 Fluent layout:
+- **Left Sidebar Page Switcher**: The Settings Window is structured with a left-hand navigation sidebar (`180px` wide) containing category buttons and a right-hand main content frame. Clicking a sidebar button dynamically hides the previous category frame and maps the selected category frame in the content area.
+- **Card-based Settings Grouping**: Settings items are nested inside rounded `CTkFrame` boxes with thin borders to mimic Windows 11 cards.
+- **In-App AI Diagnostics Panel**: Instead of triggering standard popups, the "Diagnostics" button launches an asynchronous thread that queries the selected AI engine (Gemini or Ollama) using rolling telemetry data, displaying a loading status directly in the UI before rendering results in an embedded, scrollable textbox.
+- **Custom Dialogs**: Validation errors and save confirmations are handled via modern `CTkToplevel` custom-drawn widgets rather than standard Windows MessageBox APIs.
+- **Individual Sensor Widget Colors**: The desktop widget updates the color of the CPU and GPU temperature labels independently according to their respective thresholds.
+
