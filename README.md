@@ -86,11 +86,11 @@ We took that discovery and built it directly into ThermalWatch:
 
 ## 📸 What It Looks Like
 
-### 🖥️ Desktop Widget (Dark & Light Mode)
+### 🖥️ Desktop Widget (Normal & Dynamic Warning Glow States)
 
 <p align="center">
-  <img src="assets/widget_dark.png" alt="Desktop Widget Dark Mode" width="280" style="margin-right: 20px;">
-  <img src="assets/widget_light.png" alt="Desktop Widget Light Mode" width="280">
+  <img src="assets/widget_dark.png" alt="Desktop Widget Normal State" width="280" style="margin-right: 20px;">
+  <img src="assets/widget_light.png" alt="Desktop Widget Warning Glow State" width="280">
 </p>
 
 ### 🟢 Dynamic Tray Icon Color States
