@@ -13,7 +13,7 @@
 
 ---
 
-## 🚀 Why ThermalWatch?
+##  Why ThermalWatch?
 
 Most hardware monitoring tools want to be the center of your desktop: giant overlays, gamer-RGB dashboards, constant CPU overhead just to tell you a number you'll glance at once a week. **ThermalWatch flips that.** It sits invisibly in your tray, sips almost no resources, and only speaks up when it actually matters — when your CPU or GPU crosses a threshold you define. Then it tells you twice: once on your screen, once on your phone (via [ntfy.sh](https://ntfy.sh)), so you find out even if you've walked away from your desk.
 
